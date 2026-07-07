@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fp_alert_config_tree" model="ir.ui.view">
+        <field name="name">field.pass.alert.config.tree</field>
+        <field name="model">field.pass.alert.config</field>
+        <field name="arch" type="xml">
+            <tree string="Alert Settings" editable="bottom">
+                <field name="document_type"/>
+                <field name="warn_months" string="Warning Period (Months)"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_fp_alert_config_form" model="ir.ui.view">
+        <field name="name">field.pass.alert.config.form</field>
+        <field name="model">field.pass.alert.config</field>
+        <field name="arch" type="xml">
+            <form string="Alert Configuration">
+                <sheet><group>
+                    <field name="document_type"/>
+                    <field name="warn_months" string="Warning Period (Months)"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </group></sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_fp_alert_config" model="ir.actions.act_window">
+        <field name="name">Alert Settings</field>
+        <field name="res_model">field.pass.alert.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

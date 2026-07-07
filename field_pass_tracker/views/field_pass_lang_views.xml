@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_fp_language_form" model="ir.ui.view">
+        <field name="name">field.pass.language.form</field>
+        <field name="model">field.pass.language</field>
+        <field name="arch" type="xml">
+            <form string="Language Settings" create="false" delete="false">
+                <sheet>
+                    <div style="max-width:500px;padding:24px 0;">
+                        <h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:8px;">
+                            🌐 Interface Language / لغة الواجهة
+                        </h2>
+                        <p style="font-size:13px;color:#64748b;margin-bottom:24px;">
+                            Select your preferred language. The page will reload after applying.
+                            <br/>اختر لغتك المفضلة. سيتم إعادة تحميل الصفحة بعد التطبيق.
+                        </p>
+                        <group>
+                            <field name="language" string="Language / اللغة" widget="radio"/>
+                        </group>
+                        <div style="margin-top:24px;">
+                            <button name="action_apply" type="object"
+                                    string="Apply / تطبيق"
+                                    class="btn btn-primary btn-lg"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fp_language" model="ir.actions.server">
+        <field name="name">Language Settings</field>
+        <field name="model_id" ref="model_field_pass_language"/>
+        <field name="state">code</field>
+        <field name="code">
+record = model.get_or_create()
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Language Settings',
+    'res_model': 'field.pass.language',
+    'view_mode': 'form',
+    'target': 'inline',
+    'res_id': record.id,
+}
+        </field>
+    </record>
+
+</odoo>

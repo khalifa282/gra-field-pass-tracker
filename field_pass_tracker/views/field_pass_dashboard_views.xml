@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fp_dashboard_form" model="ir.ui.view">
+        <field name="name">field.pass.dashboard.form</field>
+        <field name="model">field.pass.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Field Pass Dashboard" create="false" delete="false">
+                <sheet>
+                    <div style="max-width:1300px;padding:8px 0 24px;">
+
+                        <notebook>
+                            <page name="field_passes" string="Field Passes - التصاريح">
+                                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;margin-top:8px;">Employee Field Passes - تصاريح حقول الموظفين</div>
+                                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;">
+                                    <button name="action_emp_pass_expired" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#dc2626;line-height:1;"><field name="emp_pass_expired" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#dc2626;margin-top:6px;">Expired - منتهي</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_emp_pass_warning" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fef3c7;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#d97706;line-height:1;"><field name="emp_pass_warning" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#d97706;margin-top:6px;">Expiring Soon - ينتهي قريباً</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_emp_pass_missing" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fce7f3;border:1px solid #f9a8d4;border-left:4px solid #db2777;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#db2777;line-height:1;"><field name="emp_pass_missing" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#db2777;margin-top:6px;">Incompleted - غير مكتملة</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_emp_pass_temp" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#ea580c;line-height:1;"><field name="emp_pass_temp" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#ea580c;margin-top:6px;">Temp Pass - تصريح مؤقت</div>
+                                        </div>
+                                    </button>
+                                    <div style="background:#dcfce7;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;line-height:1;"><field name="emp_pass_valid" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#16a34a;margin-top:6px;">All Valid - جميع سارية</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;">Vehicle Field Passes - تصاريح حقول المركبات</div>
+                                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;">
+                                    <button name="action_veh_pass_expired" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#dc2626;line-height:1;"><field name="veh_pass_expired" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#dc2626;margin-top:6px;">Expired - منتهي</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_veh_pass_warning" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fef3c7;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#d97706;line-height:1;"><field name="veh_pass_warning" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#d97706;margin-top:6px;">Expiring Soon - ينتهي قريباً</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_veh_pass_missing" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fce7f3;border:1px solid #f9a8d4;border-left:4px solid #db2777;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#db2777;line-height:1;"><field name="veh_pass_missing" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#db2777;margin-top:6px;">Incompleted - غير مكتملة</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_veh_pass_temp" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #ea580c;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#ea580c;line-height:1;"><field name="veh_pass_temp" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#ea580c;margin-top:6px;">Temp Pass - تصريح مؤقت</div>
+                                        </div>
+                                    </button>
+                                    <div style="background:#dcfce7;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;line-height:1;"><field name="veh_pass_valid" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#16a34a;margin-top:6px;">All Valid - جميع سارية</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Department Breakdown - تفصيل الأقسام</div>
+                                <field name="department_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Department Breakdown" create="false" delete="false" editable="false"
+                                          decoration-danger="emp_pass_status == 'danger' or veh_pass_status == 'danger'"
+                                          decoration-warning="emp_pass_status == 'warning' or veh_pass_status == 'warning'">
+                                        <field name="department_id" string="Department - القسم"/>
+                                        <field name="emp_count" string="Employees"/>
+                                        <field name="emp_pass_expired" string="Emp Expired" decoration-danger="emp_pass_expired > 0"/>
+                                        <field name="emp_pass_warning" string="Emp Expiring" decoration-warning="emp_pass_warning > 0"/>
+                                        <field name="emp_pass_missing" string="Emp Missing" decoration-danger="emp_pass_missing > 0"/>
+                                        <field name="veh_count" string="Vehicles"/>
+                                        <field name="veh_pass_expired" string="Veh Expired" decoration-danger="veh_pass_expired > 0"/>
+                                        <field name="veh_pass_warning" string="Veh Expiring" decoration-warning="veh_pass_warning > 0"/>
+                                        <field name="veh_pass_missing" string="Veh Missing" decoration-danger="veh_pass_missing > 0"/>
+                                        <field name="emp_pass_status" invisible="1"/>
+                                        <field name="veh_pass_status" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="documents" string="Documents - المستندات">
+                                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;margin-top:8px;">Employee Documents - مستندات الموظفين</div>
+                                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;">
+                                    <button name="action_emp_doc_expired" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#dc2626;line-height:1;"><field name="emp_doc_expired" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#dc2626;margin-top:6px;">Expired - منتهي</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_emp_doc_warning" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fef3c7;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#d97706;line-height:1;"><field name="emp_doc_warning" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#d97706;margin-top:6px;">Expiring Soon - ينتهي قريباً</div>
+                                        </div>
+                                    </button>
+                                    <div style="background:#dcfce7;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;line-height:1;"><field name="emp_doc_valid" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#16a34a;margin-top:6px;">Valid - ساري</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#334155;line-height:1;"><field name="emp_total" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#64748b;margin-top:6px;">Total Employees</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;height:90px;"></div>
+                                </div>
+                                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;">Vehicle Documents - مستندات المركبات</div>
+                                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;">
+                                    <button name="action_veh_doc_expired" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#dc2626;line-height:1;"><field name="veh_doc_expired" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#dc2626;margin-top:6px;">Expired - منتهي</div>
+                                        </div>
+                                    </button>
+                                    <button name="action_veh_doc_warning" type="object" style="border:none;padding:0;background:none;cursor:pointer;display:block;">
+                                        <div style="background:#fef3c7;border:1px solid #fcd34d;border-left:4px solid #d97706;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:28px;font-weight:700;color:#d97706;line-height:1;"><field name="veh_doc_warning" readonly="1"/></div>
+                                            <div style="font-size:11px;font-weight:600;color:#d97706;margin-top:6px;">Expiring Soon - ينتهي قريباً</div>
+                                        </div>
+                                    </button>
+                                    <div style="background:#dcfce7;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;line-height:1;"><field name="veh_doc_valid" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#16a34a;margin-top:6px;">Valid - ساري</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #94a3b8;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#334155;line-height:1;"><field name="veh_total" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#64748b;margin-top:6px;">Total Vehicles</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;height:90px;"></div>
+                                </div>
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Department Breakdown</div>
+                                <field name="department_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Department Breakdown" create="false" delete="false" editable="false"
+                                          decoration-danger="emp_doc_status == 'danger' or veh_doc_status == 'danger'"
+                                          decoration-warning="emp_doc_status == 'warning' or veh_doc_status == 'warning'">
+                                        <field name="department_id" string="Department - القسم"/>
+                                        <field name="emp_count" string="Employees"/>
+                                        <field name="emp_doc_expired" string="Emp Doc Expired" decoration-danger="emp_doc_expired > 0"/>
+                                        <field name="emp_doc_warning" string="Emp Doc Expiring" decoration-warning="emp_doc_warning > 0"/>
+                                        <field name="veh_count" string="Vehicles"/>
+                                        <field name="veh_doc_expired" string="Veh Doc Expired" decoration-danger="veh_doc_expired > 0"/>
+                                        <field name="veh_doc_warning" string="Veh Doc Expiring" decoration-warning="veh_doc_warning > 0"/>
+                                        <field name="emp_doc_status" invisible="1"/>
+                                        <field name="veh_doc_status" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="progress" string="Progress - المعاملات">
+                                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:10px;margin-top:8px;">Active Submissions - الطلبات النشطة</div>
+                                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#2563eb;line-height:1;"><field name="renewal_submitted" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#2563eb;margin-top:6px;">Doc Renewals Submitted</div>
+                                    </div>
+                                    <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#dc2626;line-height:1;"><field name="renewal_rejected" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#dc2626;margin-top:6px;">Doc Renewals Rejected</div>
+                                    </div>
+                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #7c3aed;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#7c3aed;line-height:1;"><field name="pass_app_submitted" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#7c3aed;margin-top:6px;">Pass Apps Submitted</div>
+                                    </div>
+                                    <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #9f1239;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#9f1239;line-height:1;"><field name="pass_app_rejected" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#9f1239;margin-top:6px;">Pass Apps Rejected</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Recent Document Renewals - آخر تجديدات</div>
+                                <field name="recent_renewal_ids" nolabel="1" readonly="1">
+                                    <tree string="Recent Renewals" create="false" delete="false" editable="false"
+                                          decoration-success="event_type == 'issued'"
+                                          decoration-danger="event_type == 'rejected'"
+                                          decoration-info="event_type == 'submitted'">
+                                        <field name="event_date" string="Date"/>
+                                        <field name="employee_id" string="Employee"/>
+                                        <field name="vehicle_id" string="Vehicle"/>
+                                        <field name="document_type" string="Document"/>
+                                        <field name="event_by" string="By"/>
+                                        <field name="event_type" string="Status" widget="badge"
+                                               decoration-success="event_type == 'issued'"
+                                               decoration-danger="event_type == 'rejected'"
+                                               decoration-info="event_type == 'submitted'"/>
+                                        <field name="rejection_reason" string="Remarks"/>
+                                    </tree>
+                                </field>
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Recent Pass Applications - آخر طلبات التصاريح</div>
+                                <field name="recent_app_ids" nolabel="1" readonly="1">
+                                    <tree string="Recent Applications" create="false" delete="false" editable="false"
+                                          decoration-success="state == 'issued'"
+                                          decoration-danger="state == 'rejected'"
+                                          decoration-info="state == 'submitted'">
+                                        <field name="event_date" string="Date"/>
+                                        <field name="employee_id" string="Employee"/>
+                                        <field name="vehicle_id" string="Vehicle"/>
+                                        <field name="pass_type" string="Pass Type"/>
+                                        <field name="event_by" string="By"/>
+                                        <field name="state" string="Status" widget="badge"
+                                               decoration-success="state == 'issued'"
+                                               decoration-danger="state == 'rejected'"
+                                               decoration-info="state == 'submitted'"/>
+                                        <field name="rejection_reason" string="Remarks"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="employees" string="Employees - الموظفين">
+                                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;margin-top:8px;">
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #334155;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#334155;line-height:1;"><field name="emp_total" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#64748b;margin-top:6px;">Total Employees - الإجمالي</div>
+                                    </div>
+                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#2563eb;line-height:1;"><field name="emp_field_count" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#2563eb;margin-top:6px;">Field Staff - موظفو الحقل</div>
+                                    </div>
+                                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;line-height:1;"><field name="emp_driver_count" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#16a34a;margin-top:6px;">Drivers - السائقون</div>
+                                    </div>
+                                    <div style="background:#faf5ff;border:1px solid #e9d5ff;border-left:4px solid #7c3aed;border-radius:10px;padding:16px 14px;text-align:center;height:90px;display:flex;flex-direction:column;justify-content:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#7c3aed;line-height:1;"><field name="emp_office_count" readonly="1"/></div>
+                                        <div style="font-size:11px;font-weight:600;color:#7c3aed;margin-top:6px;">Office Staff - موظفو المكتب</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">By Department - حسب القسم</div>
+                                <field name="department_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Employees by Department" create="false" delete="false" editable="false">
+                                        <field name="department_id" string="Department - القسم"/>
+                                        <field name="emp_count" string="Total"/>
+                                        <field name="emp_field_count" string="Field"/>
+                                        <field name="emp_driver_count" string="Drivers"/>
+                                        <field name="emp_office_count" string="Office"/>
+                                        <field name="veh_count" string="Vehicles"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page name="statistics" string="Statistics - الإحصائيات">
+                                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;margin-top:8px;">
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #7c3aed;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#7c3aed;"><field name="stat_avg_doc_days" readonly="1"/> days</div>
+                                        <div style="font-size:12px;font-weight:600;color:#64748b;margin-top:6px;">Avg Document Processing - متوسط معالجة المستندات</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #2563eb;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#2563eb;"><field name="stat_avg_pass_days" readonly="1"/> days</div>
+                                        <div style="font-size:12px;font-weight:600;color:#64748b;margin-top:6px;">Avg Pass Processing - متوسط معالجة التصاريح</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;"><field name="stat_total_completed" readonly="1"/></div>
+                                        <div style="font-size:12px;font-weight:600;color:#64748b;margin-top:6px;">Total Completed - إجمالي المكتملة</div>
+                                    </div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+                                    <div style="background:#dcfce7;border:1px solid #86efac;border-left:4px solid #16a34a;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#16a34a;"><field name="stat_fastest_days" readonly="1"/> days</div>
+                                        <div style="font-size:12px;font-weight:600;color:#065f46;margin-top:6px;">Fastest Completion - أسرع إتمام</div>
+                                    </div>
+                                    <div style="background:#fee2e2;border:1px solid #fca5a5;border-left:4px solid #dc2626;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#dc2626;"><field name="stat_slowest_days" readonly="1"/> days</div>
+                                        <div style="font-size:12px;font-weight:600;color:#991b1b;margin-top:6px;">Slowest Completion - أبطأ إتمام</div>
+                                    </div>
+                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:10px;padding:16px 14px;text-align:center;">
+                                        <div style="font-size:28px;font-weight:700;color:#2563eb;"><field name="stat_processing" readonly="1"/></div>
+                                        <div style="font-size:12px;font-weight:600;color:#1d4ed8;margin-top:6px;">Currently Processing - قيد المعالجة</div>
+                                    </div>
+                                </div>
+
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Document Processing Time - وقت معالجة المستندات</div>
+                                <field name="stat_doc_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Document Stats" create="false" delete="false">
+                                        <field name="label" string="Document Type - نوع المستند"/>
+                                        <field name="count" string="Completed - مكتملة"/>
+                                        <field name="avg_days" string="Avg Days - متوسط الأيام"/>
+                                        <field name="fastest" string="Fastest - أسرع"/>
+                                        <field name="slowest" string="Slowest - أبطأ"/>
+                                    </tree>
+                                </field>
+
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">Pass Processing Time - وقت معالجة التصاريح</div>
+                                <field name="stat_pass_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Pass Stats" create="false" delete="false">
+                                        <field name="label" string="Pass Type - نوع التصريح"/>
+                                        <field name="count" string="Completed - مكتملة"/>
+                                        <field name="avg_days" string="Avg Days - متوسط الأيام"/>
+                                        <field name="fastest" string="Fastest - أسرع"/>
+                                        <field name="slowest" string="Slowest - أبطأ"/>
+                                    </tree>
+                                </field>
+
+                                <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;margin-top:20px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;">By Nationality - حسب الجنسية</div>
+                                <field name="stat_nat_line_ids" nolabel="1" readonly="1">
+                                    <tree string="Nationality Stats" create="false" delete="false">
+                                        <field name="label" string="Nationality - الجنسية"/>
+                                        <field name="count" string="Completed - مكتملة"/>
+                                        <field name="avg_days" string="Avg Days - متوسط الأيام"/>
+                                        <field name="fastest" string="Fastest - أسرع"/>
+                                        <field name="slowest" string="Slowest - أبطأ"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_field_pass_dashboard" model="ir.actions.server">
+        <field name="name">Dashboard</field>
+        <field name="model_id" ref="model_field_pass_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.get_dashboard()
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Dashboard',
+    'res_model': 'field.pass.dashboard',
+    'view_mode': 'form',
+    'target': 'inline',
+    'res_id': action.id,
+}
+        </field>
+    </record>
+</odoo>

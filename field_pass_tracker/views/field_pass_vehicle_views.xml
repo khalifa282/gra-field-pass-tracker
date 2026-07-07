@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_fp_vehicle_tree" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.tree</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="arch" type="xml">
+            <tree string="Vehicles - المركبات"
+                  decoration-danger="overall_status == 'expired' or overall_status == 'missing'"
+                  decoration-warning="overall_status == 'warning'">
+                <field name="plate_number" string="Plate Number - رقم اللوحة"/>
+                <field name="vehicle_type" string="Vehicle Type - نوع المركبة" optional="show"/>
+                <field name="department_id" string="Department - القسم"/>
+                <field name="contract_id" string="Contract - العقد" optional="show"/>
+                <field name="registration_expiry_date" readonly="1" string="Registration - تاريخ انتهاء الدفتر" optional="show"/>
+                <field name="third_party_inspection_expiry" string="3rd Party Inspection - الفحص من طرف ثالث" optional="show"/>
+                <field name="clearance_certificate_expiry" readonly="1" string="Clearance - شهادة الفحص الكي او سي" optional="show"/>
+                <field name="overall_status" widget="badge"
+                       decoration-success="overall_status == 'valid'"
+                       decoration-warning="overall_status == 'warning'"
+                       decoration-danger="overall_status == 'expired' or overall_status == 'missing'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_fp_vehicle_form" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.form</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="arch" type="xml">
+            <form string="Vehicle - المركبة">
+                <sheet>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_passes" type="object"
+                                class="oe_stat_button" icon="fa-id-card"
+                                attrs="{'invisible': [('pass_count', '=', 0)]}">
+                            <field name="pass_count" widget="statinfo" string="Field Passes - تصاريح الحقول"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('active', '=', True)]}"/>
+                    <div class="oe_title">
+                        <h1><field name="plate_number" placeholder="Plate Number"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Vehicle Details - تفاصيل المركبة">
+                            <field name="vehicle_type" string="Vehicle Type - نوع المركبة" widget="selection"/>
+                            <field name="vehicle_description" string="Description - الوصف"/>
+                            <field name="model_year" string="Model Year - سنة الموديل"/>
+                            <field name="unit_serial_number" string="Unit / Serial Number - رقم الوحدة / المسلسل"/>
+                        </group>
+                        <group string="Assignment - التعيين">
+                            <field name="department_id" string="Department - القسم"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="contract_id" string="Contract - العقد"
+                                   domain="[('department_id','=',department_id),('active','=',True)]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+
+                        <page name="summary" string="Summary - ملخص">
+                            <group string="Vehicle Documents - وثائق المركبة">
+                                <group string="Validity - الصلاحية">
+                                    <field name="sv_registration" string="Registration - التسجيل" readonly="1" widget="badge" decoration-success="sv_registration == 'valid'" decoration-warning="sv_registration == 'warning'" decoration-danger="sv_registration in ('expired','missing')"/>
+                                    <field name="sv_third_party" string="3rd Party Inspection" readonly="1" widget="badge" decoration-success="sv_third_party == 'valid'" decoration-warning="sv_third_party == 'warning'" decoration-danger="sv_third_party in ('expired','missing')"/>
+                                    <field name="sv_clearance" string="Clearance Certificate" readonly="1" widget="badge" decoration-success="sv_clearance == 'valid'" decoration-warning="sv_clearance == 'warning'" decoration-danger="sv_clearance in ('expired','missing')"/>
+                                </group>
+                                <group string="Application Status - حالة المعاملة">
+                                    <field name="sa_registration" string="Registration" readonly="1" widget="badge" decoration-info="sa_registration == 'submitted'" decoration-danger="sa_registration == 'rejected'" decoration-success="sa_registration == 'issued'" attrs="{'invisible': [('sa_registration','=','none')]}"/>
+                                    <field name="sa_third_party" string="3rd Party" readonly="1" widget="badge" decoration-info="sa_third_party == 'submitted'" decoration-danger="sa_third_party == 'rejected'" decoration-success="sa_third_party == 'issued'" attrs="{'invisible': [('sa_third_party','=','none')]}"/>
+                                    <field name="sa_clearance" string="Clearance" readonly="1" widget="badge" decoration-info="sa_clearance == 'submitted'" decoration-danger="sa_clearance == 'rejected'" decoration-success="sa_clearance == 'issued'" attrs="{'invisible': [('sa_clearance','=','none')]}"/>
+                                </group>
+                            </group>
+                            <group string="Field Passes - تصاريح الحقول">
+                                <group string="Validity - الصلاحية">
+                                    <field name="sv_koc_pass" string="KOC Field Pass" readonly="1" widget="badge" decoration-success="sv_koc_pass == 'valid'" decoration-warning="sv_koc_pass == 'warning'" decoration-danger="sv_koc_pass in ('expired','missing')"/>
+                                    <field name="sv_ratqa_pass" string="RATQA &amp; Abdally" readonly="1" widget="badge" decoration-success="sv_ratqa_pass == 'valid'" decoration-warning="sv_ratqa_pass == 'warning'" decoration-danger="sv_ratqa_pass in ('expired','missing')"/>
+                                    <field name="sv_wafra_pass" string="Wafra Pass" readonly="1" widget="badge" decoration-success="sv_wafra_pass == 'valid'" decoration-warning="sv_wafra_pass == 'warning'" decoration-danger="sv_wafra_pass in ('expired','missing')"/>
+                                    <field name="sv_fawares_pass" string="Fawares Pass" readonly="1" widget="badge" decoration-success="sv_fawares_pass == 'valid'" decoration-warning="sv_fawares_pass == 'warning'" decoration-danger="sv_fawares_pass in ('expired','missing')"/>
+                                    <field name="sv_temp_pass" string="Temp Pass" readonly="1" widget="badge" decoration-success="sv_temp_pass == 'valid'" decoration-warning="sv_temp_pass == 'warning'" decoration-danger="sv_temp_pass in ('expired','missing')"/>
+                                </group>
+                                <group string="Application Status - حالة المعاملة">
+                                    <field name="sa_koc_pass" string="KOC Field Pass" readonly="1" widget="badge" decoration-info="sa_koc_pass == 'submitted'" decoration-danger="sa_koc_pass == 'rejected'" decoration-success="sa_koc_pass == 'issued'" attrs="{'invisible': [('sa_koc_pass','=','none')]}"/>
+                                    <field name="sa_ratqa_pass" string="RATQA &amp; Abdally" readonly="1" widget="badge" decoration-info="sa_ratqa_pass == 'submitted'" decoration-danger="sa_ratqa_pass == 'rejected'" decoration-success="sa_ratqa_pass == 'issued'" attrs="{'invisible': [('sa_ratqa_pass','=','none')]}"/>
+                                    <field name="sa_wafra_pass" string="Wafra Pass" readonly="1" widget="badge" decoration-info="sa_wafra_pass == 'submitted'" decoration-danger="sa_wafra_pass == 'rejected'" decoration-success="sa_wafra_pass == 'issued'" attrs="{'invisible': [('sa_wafra_pass','=','none')]}"/>
+                                    <field name="sa_fawares_pass" string="Fawares Pass" readonly="1" widget="badge" decoration-info="sa_fawares_pass == 'submitted'" decoration-danger="sa_fawares_pass == 'rejected'" decoration-success="sa_fawares_pass == 'issued'" attrs="{'invisible': [('sa_fawares_pass','=','none')]}"/>
+                                    <field name="sa_temp_pass" string="Temp Pass" readonly="1" widget="badge" decoration-info="sa_temp_pass == 'submitted'" decoration-danger="sa_temp_pass == 'rejected'" decoration-success="sa_temp_pass == 'issued'" attrs="{'invisible': [('sa_temp_pass','=','none')]}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="documents" string="Documents - المستندات">
+                            <!-- Horizontal 3-column document layout -->
+                            <group>
+                                <group string="Registration - التسجيل">
+                                    <field name="registration_expiry_date" readonly="1" string="Registration Expiry - تاريخ انتهاء الدفتر"/>
+                                    <field name="registration_status" widget="badge"
+                                           decoration-success="registration_status == 'valid'"
+                                           decoration-warning="registration_status == 'warning'"
+                                           decoration-danger="registration_status == 'expired'"
+                                           decoration-muted="registration_status == 'na'"/>
+                                    <field name="registration_days" string="Days Remaining - الأيام المتبقية"
+                                           attrs="{'invisible': [('registration_status','=','na')]}"/>
+                                <field name="attachment_registration" widget="binary" readonly="1" filename="attachment_registration_name" string="Document Copy - نسخة المستند"/>
+                                    <field name="attachment_registration_name" invisible="1"/>
+                                </group>
+                                <group string="3rd Party Inspection - الفحص من طرف ثالث">
+                                    <field name="third_party_inspection_date" readonly="1" string="3rd Party Inspection Date - تاريخ الفحص من طرف ثالث"/>
+                                    <field name="third_party_inspection_expiry" string="3rd Party Inspection Expiry - انتهاء الفحص" readonly="1"/>
+                                    <field name="third_party_inspection_status" widget="badge"
+                                           decoration-success="third_party_inspection_status == 'valid'"
+                                           decoration-warning="third_party_inspection_status == 'warning'"
+                                           decoration-danger="third_party_inspection_status == 'expired'"
+                                           decoration-muted="third_party_inspection_status == 'na'"/>
+                                    <field name="third_party_inspection_days" string="Days Remaining - الأيام المتبقية"
+                                           attrs="{'invisible': [('third_party_inspection_status','=','na')]}"/>
+                                <field name="attachment_third_party" widget="binary" readonly="1" filename="attachment_third_party_name" string="Document Copy - نسخة المستند"/>
+                                    <field name="attachment_third_party_name" invisible="1"/>
+                                </group>
+                                <group string="Clearance Certificate - شهادة الفحص الكي او سي">
+                                    <field name="clearance_certificate_expiry" readonly="1" string="Clearance Certificate Expiry - انتهاء شهادة الفحص الكي او سي"/>
+                                    <field name="clearance_certificate_status" widget="badge"
+                                           decoration-success="clearance_certificate_status == 'valid'"
+                                           decoration-warning="clearance_certificate_status == 'warning'"
+                                           decoration-danger="clearance_certificate_status == 'expired'"
+                                           decoration-muted="clearance_certificate_status == 'na'"/>
+                                    <field name="clearance_certificate_days" string="Days Remaining - الأيام المتبقية"
+                                           attrs="{'invisible': [('clearance_certificate_status','=','na')]}"/>
+                                <field name="attachment_clearance" widget="binary" readonly="1" filename="attachment_clearance_name" string="Document Copy - نسخة المستند"/>
+                                    <field name="attachment_clearance_name" invisible="1"/>
+                                </group>
+                            </group>
+                            <group string="Remarks - ملاحظات">
+                                <field name="remarks" nolabel="1" placeholder="Notes..."/>
+                            </group>
+                        </page>
+
+                        <page name="field_passes" string="Field Passes - تصاريح الحقول">
+                            <group string="Pass Status - حالة التصريح">
+                                <group>
+                                    <field name="pass_koc_status" string="KOC Field Pass - تصاريح الكي او سي" widget="badge"
+                                           decoration-success="pass_koc_status == 'valid'"
+                                           decoration-warning="pass_koc_status in ['warning','temp_warning']"
+                                           decoration-danger="pass_koc_status in ['expired','missing']"
+                                           decoration-info="pass_koc_status == 'temp_active'"
+                                           decoration-muted="pass_koc_status == 'not_required'"/>
+                                    <field name="pass_ratqa_status" string="RATQA &amp; Abdally - تصريح الرتقة والعبدلي" widget="badge"
+                                           decoration-success="pass_ratqa_status == 'valid'"
+                                           decoration-warning="pass_ratqa_status in ['warning','temp_warning']"
+                                           decoration-danger="pass_ratqa_status in ['expired','missing']"
+                                           decoration-info="pass_ratqa_status == 'temp_active'"
+                                           decoration-muted="pass_ratqa_status == 'not_required'"/>
+                                </group>
+                                <group>
+                                    <field name="pass_wafra_status" string="Wafra Pass - تصريح الوفرة" widget="badge"
+                                           decoration-success="pass_wafra_status == 'valid'"
+                                           decoration-warning="pass_wafra_status in ['warning','temp_warning']"
+                                           decoration-danger="pass_wafra_status in ['expired','missing']"
+                                           decoration-info="pass_wafra_status == 'temp_active'"
+                                           decoration-muted="pass_wafra_status == 'not_required'"/>
+                                    <field name="pass_fawares_status" string="Fawares Pass - تصريح الفوارس" widget="badge"
+                                           decoration-success="pass_fawares_status == 'valid'"
+                                           decoration-warning="pass_fawares_status in ['warning','temp_warning']"
+                                           decoration-danger="pass_fawares_status in ['expired','missing']"
+                                           decoration-info="pass_fawares_status == 'temp_active'"
+                                           decoration-muted="pass_fawares_status == 'not_required'"/>
+                                </group>
+                            </group>
+                            <separator string="Pass Records - سجلات التصاريح"/>
+                            <field name="pass_ids" nolabel="1">
+                                <tree editable="bottom"
+                                      decoration-success="expiry_status == 'valid'"
+                                      decoration-warning="expiry_status == 'warning'"
+                                      decoration-danger="expiry_status == 'expired'"
+                                      decoration-muted="expiry_status == 'na'">
+                                    <field name="pass_type" string="Pass Type - نوع التصريح"/>
+                                    <field name="is_temp" string="Temp Pass - تصريح مؤقت"/>
+                                    <field name="pass_number" string="Pass Number - رقم التصريح"/>
+                                    <field name="date_issued" string="Date Issued - تاريخ الإصدار"/>
+                                    <field name="date_expire" string="Expiry Date - تاريخ الانتهاء"/>
+                                    <field name="days_to_expiry" string="Days Left - الأيام المتبقية"/>
+                                    <field name="application_status" string="Application Status - حالة الطلب" widget="badge"
+                                           decoration-success="application_status == 'yes'"
+                                           decoration-warning="application_status == 'under_process'"
+                                           decoration-muted="application_status == 'no'"/>
+                                    <field name="expiry_status" widget="badge"
+                                           decoration-success="expiry_status == 'valid'"
+                                           decoration-warning="expiry_status == 'warning'"
+                                           decoration-danger="expiry_status == 'expired'"
+                                           decoration-muted="expiry_status == 'na'"/>
+                                    <field name="notes" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="vehicle_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="renewal_history" string="Document Renewal History - سجل تجديد المستندات">
+                            <field name="renewal_history_ids" nolabel="1" readonly="1">
+                                <tree create="false" delete="false"
+                                      decoration-success="event_type == 'issued'"
+                                      decoration-danger="event_type == 'rejected'"
+                                      decoration-info="event_type == 'submitted'">
+                                    <field name="event_date" string="Date - التاريخ"/>
+                                    <field name="document_type" string="Document - المستند"/>
+                                    <field name="event_by" string="By - بواسطة"/>
+                                    <field name="event_type" string="Status - الحالة" widget="badge"
+                                           decoration-success="event_type == 'issued'"
+                                           decoration-danger="event_type == 'rejected'"
+                                           decoration-info="event_type == 'submitted'"/>
+                                    <field name="rejection_reason" string="Remarks - ملاحظات"/>
+                                    <field name="new_expiry_date" string="New Expiry - الانتهاء الجديد"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="pass_app_history" string="Field Pass History - سجل تصاريح الحقول">
+                            <field name="pass_app_history_ids" nolabel="1" readonly="1">
+                                <tree create="false" delete="false"
+                                      decoration-success="state == 'issued'"
+                                      decoration-danger="state == 'rejected'"
+                                      decoration-info="state == 'submitted'">
+                                    <field name="event_date" string="Date - التاريخ"/>
+                                    <field name="pass_type" string="Pass Type - نوع التصريح"/>
+                                    <field name="event_by" string="By - بواسطة"/>
+                                    <field name="state" string="Status - الحالة" widget="badge"
+                                           decoration-success="state == 'issued'"
+                                           decoration-danger="state == 'rejected'"
+                                           decoration-info="state == 'submitted'"/>
+                                    <field name="rejection_reason" string="Remarks - ملاحظات"/>
+                                    <field name="expiry_date" string="Expiry - الانتهاء"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_fp_vehicle_search" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.search</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="arch" type="xml">
+            <search string="Vehicles - المركبات">
+                <field name="plate_number"/>
+                <field name="vehicle_type"/>
+                <field name="department_id"/>
+                <field name="contract_id"/>
+                <filter string="Expired - منتهي" name="expired"
+                        domain="[('overall_status','in',['expired','missing'])]"/>
+                <filter string="Expiring Soon - ينتهي قريباً" name="warning"
+                        domain="[('overall_status','=','warning')]"/>
+                <filter string="Missing Pass - تصريح مفقود" name="missing"
+                        domain="[('overall_status','=','missing')]"/>
+                <separator/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Department - القسم" name="by_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Vehicle Type - نوع المركبة" name="by_type" context="{'group_by': 'vehicle_type'}"/>
+                </group>
+                <searchpanel>
+                    <field name="department_id" string="Department - القسم" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_fp_vehicle" model="ir.actions.act_window">
+        <field name="name">Vehicles</field>
+        <field name="res_model">field.pass.vehicle</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_by_dept': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No vehicles yet</p>
+            <p>Add vehicles or import from Excel via Action menu.</p>
+        </field>
+    </record>
+
+
+    <!-- Dashboard Pass Status Tree View -->
+    <record id="view_fp_vehicle_pass_status_tree" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.pass.status.tree</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <tree string="Vehicle Pass Status" create="false" delete="false"
+                  decoration-danger="overall_status == 'expired' or overall_status == 'missing'"
+                  decoration-warning="overall_status == 'warning'">
+                <field name="plate_number" string="Vehicle Number - رقم المركبة"/>
+                <field name="department_id" string="Department - القسم"/>
+                <field name="overall_status" invisible="1"/>
+                <field name="pass_koc_status" string="KOC Status" widget="badge"
+                       decoration-success="pass_koc_status == 'valid'"
+                       decoration-warning="pass_koc_status in ('warning','temp_warning','temp_active')"
+                       decoration-danger="pass_koc_status in ('expired','missing')"
+                       decoration-muted="pass_koc_status == 'not_required'"/>
+                <field name="sa_koc_pass" string="KOC Application" widget="badge"
+                       decoration-info="sa_koc_pass == 'submitted'"
+                       decoration-danger="sa_koc_pass == 'rejected'"
+                       decoration-success="sa_koc_pass == 'issued'"
+                       attrs="{'invisible': [('sa_koc_pass','=','none')]}"/>
+                <field name="pass_ratqa_status" string="RATQA Status" widget="badge"
+                       decoration-success="pass_ratqa_status == 'valid'"
+                       decoration-warning="pass_ratqa_status in ('warning','temp_warning','temp_active')"
+                       decoration-danger="pass_ratqa_status in ('expired','missing')"
+                       decoration-muted="pass_ratqa_status == 'not_required'"/>
+                <field name="sa_ratqa_pass" string="RATQA Application" widget="badge"
+                       decoration-info="sa_ratqa_pass == 'submitted'"
+                       decoration-danger="sa_ratqa_pass == 'rejected'"
+                       decoration-success="sa_ratqa_pass == 'issued'"
+                       attrs="{'invisible': [('sa_ratqa_pass','=','none')]}"/>
+                <field name="pass_wafra_status" string="Wafra Status" widget="badge"
+                       decoration-success="pass_wafra_status == 'valid'"
+                       decoration-warning="pass_wafra_status in ('warning','temp_warning','temp_active')"
+                       decoration-danger="pass_wafra_status in ('expired','missing')"
+                       decoration-muted="pass_wafra_status == 'not_required'"/>
+                <field name="sa_wafra_pass" string="Wafra Application" widget="badge"
+                       decoration-info="sa_wafra_pass == 'submitted'"
+                       decoration-danger="sa_wafra_pass == 'rejected'"
+                       decoration-success="sa_wafra_pass == 'issued'"
+                       attrs="{'invisible': [('sa_wafra_pass','=','none')]}"/>
+                <field name="pass_fawares_status" string="Fawares Status" widget="badge"
+                       decoration-success="pass_fawares_status == 'valid'"
+                       decoration-warning="pass_fawares_status in ('warning','temp_warning','temp_active')"
+                       decoration-danger="pass_fawares_status in ('expired','missing')"
+                       decoration-muted="pass_fawares_status == 'not_required'"/>
+                <field name="sa_fawares_pass" string="Fawares Application" widget="badge"
+                       decoration-info="sa_fawares_pass == 'submitted'"
+                       decoration-danger="sa_fawares_pass == 'rejected'"
+                       decoration-success="sa_fawares_pass == 'issued'"
+                       attrs="{'invisible': [('sa_fawares_pass','=','none')]}"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- Vehicle Document Status Tree View -->
+    <record id="view_fp_vehicle_doc_status_tree" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.doc.status.tree</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <tree string="Vehicle Document Status" create="false" delete="false"
+                  decoration-danger="overall_doc_status == 'expired'"
+                  decoration-warning="overall_doc_status == 'warning'">
+                <field name="plate_number" string="Vehicle Number - رقم المركبة"/>
+                <field name="department_id" string="Department - القسم"/>
+                <field name="overall_doc_status" invisible="1"/>
+                <field name="registration_status" string="Registration" widget="badge"
+                       decoration-success="registration_status == 'valid'"
+                       decoration-warning="registration_status == 'warning'"
+                       decoration-danger="registration_status == 'expired'"
+                       decoration-muted="registration_status == 'na'"/>
+                <field name="third_party_inspection_status" string="3rd Party" widget="badge"
+                       decoration-success="third_party_inspection_status == 'valid'"
+                       decoration-warning="third_party_inspection_status == 'warning'"
+                       decoration-danger="third_party_inspection_status == 'expired'"
+                       decoration-muted="third_party_inspection_status == 'na'"/>
+                <field name="clearance_certificate_status" string="Clearance" widget="badge"
+                       decoration-success="clearance_certificate_status == 'valid'"
+                       decoration-warning="clearance_certificate_status == 'warning'"
+                       decoration-danger="clearance_certificate_status == 'expired'"
+                       decoration-muted="clearance_certificate_status == 'na'"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

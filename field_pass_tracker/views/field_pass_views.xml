@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_field_pass_tree" model="ir.ui.view">
+        <field name="name">field.pass.tree</field>
+        <field name="model">field.pass</field>
+        <field name="arch" type="xml">
+            <tree string="Field Passes"
+                  decoration-danger="expiry_status == 'expired'"
+                  decoration-warning="expiry_status == 'warning'">
+                <field name="employee_id" string="Employee" optional="show"/>
+                <field name="vehicle_id" string="Vehicle" optional="show"/>
+                <field name="pass_type"/>
+                <field name="pass_number" optional="show"/>
+                <field name="date_issued" optional="show"/>
+                <field name="date_expire"/>
+                <field name="days_to_expiry" string="Days Left"/>
+                <field name="expiry_status" widget="badge"
+                       decoration-success="expiry_status == 'valid'"
+                       decoration-warning="expiry_status == 'warning'"
+                       decoration-danger="expiry_status == 'expired'"
+                       decoration-muted="expiry_status == 'na'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_field_pass_form" model="ir.ui.view">
+        <field name="name">field.pass.form</field>
+        <field name="model">field.pass</field>
+        <field name="arch" type="xml">
+            <form string="Field Pass">
+                <sheet>
+                    <group>
+                        <group string="Entity">
+                            <field name="employee_id"
+                                   attrs="{'invisible': [('vehicle_id','!=',False)]}"/>
+                            <field name="vehicle_id"
+                                   attrs="{'invisible': [('employee_id','!=',False)]}"/>
+                        </group>
+                        <group string="Pass Details">
+                            <field name="pass_type"/>
+                            <field name="pass_number"/>
+                            <field name="date_issued"/>
+                            <field name="date_expire"/>
+                            <field name="expiry_status" widget="badge"
+                                   decoration-success="expiry_status == 'valid'"
+                                   decoration-warning="expiry_status == 'warning'"
+                                   decoration-danger="expiry_status == 'expired'"
+                                   decoration-muted="expiry_status == 'na'"/>
+                            <field name="days_to_expiry" string="Days to Expiry"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" placeholder="Notes..."/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_field_pass_search" model="ir.ui.view">
+        <field name="name">field.pass.search</field>
+        <field name="model">field.pass</field>
+        <field name="arch" type="xml">
+            <search string="Field Passes">
+                <field name="employee_id"/>
+                <field name="vehicle_id"/>
+                <field name="pass_type"/>
+                <filter string="Expired" name="expired" domain="[('expiry_status','=','expired')]"/>
+                <filter string="Expiring Soon" name="warning" domain="[('expiry_status','=','warning')]"/>
+                <filter string="Under Process" name="under_process"
+                        domain="[('application_status','=','under_process')]"/>
+                <separator/>
+                <filter string="Employees" name="employees" domain="[('entity_type','=','employee')]"/>
+                <filter string="Vehicles" name="vehicles" domain="[('entity_type','=','vehicle')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Pass Type" name="by_type" context="{'group_by': 'pass_type'}"/>
+                    <filter string="Employee" name="by_emp" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Vehicle" name="by_veh" context="{'group_by': 'vehicle_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_field_pass" model="ir.actions.act_window">
+        <field name="name">Field Passes</field>
+        <field name="res_model">field.pass</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_field_pass_expired" model="ir.actions.act_window">
+        <field name="name">Expired Field Passes</field>
+        <field name="res_model">field.pass</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('expiry_status','=','expired')]</field>
+    </record>
+
+</odoo>

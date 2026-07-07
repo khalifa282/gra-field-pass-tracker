@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_fp_contract_tree" model="ir.ui.view">
+        <field name="name">field.pass.contract.tree</field>
+        <field name="model">field.pass.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Contracts" decoration-muted="not active">
+                <field name="contract_number"/>
+                <field name="description"/>
+                <field name="department_id"/>
+                <field name="employee_count" string="Employees"/>
+                <field name="vehicle_count" string="Vehicles"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fp_contract_form" model="ir.ui.view">
+        <field name="name">field.pass.contract.form</field>
+        <field name="model">field.pass.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <sheet>
+                    <group>
+                        <group string="Contract Details">
+                            <field name="contract_number"/>
+                            <field name="description"/>
+                            <field name="department_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="employee_count" readonly="1"/>
+                            <field name="vehicle_count" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_fp_contract_search" model="ir.ui.view">
+        <field name="name">field.pass.contract.search</field>
+        <field name="model">field.pass.contract</field>
+        <field name="arch" type="xml">
+            <search string="Contracts">
+                <field name="contract_number"/>
+                <field name="department_id"/>
+                <filter string="Active" name="active" domain="[('active','=',True)]"/>
+                <filter string="Archived" name="archived" domain="[('active','=',False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_fp_contract" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">field.pass.contract</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+</odoo>

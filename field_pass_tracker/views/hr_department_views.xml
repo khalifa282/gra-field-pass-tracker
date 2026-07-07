@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hr_dept_fp_form" model="ir.ui.view">
+        <field name="name">hr.department.fp.form.inherit</field>
+        <field name="model">hr.department</field>
+        <field name="inherit_id" ref="hr.view_department_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Clients - شركات النفط" col="4">
+                    <field name="fp_client_koc"
+                           string="Kuwait Oil Company (KOC) - شركة نفط الكويت"/>
+                    <field name="fp_client_wjo"
+                           string="Wafra Joint Operations (WJO) - عمليات الوفرة المشتركة"/>
+                </group>
+                <div style="font-size:12px;color:#64748b;padding:0 16px 12px;">
+                    <span>KOC → KOC Field Pass, RATQA &amp; Abdally, CV Approval</span>
+                    <span style="margin-left:24px;">WJO → Wafra Pass, Fawares Pass, WJO HSE Training</span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

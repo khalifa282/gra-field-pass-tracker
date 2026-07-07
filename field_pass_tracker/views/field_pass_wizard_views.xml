@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ APPLICATION WIZARD ══════════════════════════════════════════════ -->
+    <record id="view_fp_application_wizard_form" model="ir.ui.view">
+        <field name="name">field.pass.application.wizard.form</field>
+        <field name="model">field.pass.application.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Pass Application - معاملات التصاريح" create="false" delete="false">
+                <sheet>
+                    <field name="has_open_submission" invisible="1"/>
+                    <div style="max-width:950px;">
+
+                        <!-- Step 1: Employee or Vehicle -->
+                        <group string="Step 1 - Field Pass Type - تصريح افراد او مركبات">
+                            <field name="entity_type" string="Type - النوع"
+                                   widget="radio" options="{'horizontal': True}"/>
+                        </group>
+
+                        <!-- Step 2: Select Employee or Vehicle -->
+                        <group string="Step 2 - Select - اختر"
+                               attrs="{'invisible': [('entity_type','=',False)]}">
+                            <field name="employee_id" string="Employee Name - اسم الموظف"
+                                   attrs="{'invisible': [('entity_type','!=','employee')],
+                                           'required': [('entity_type','=','employee')]}"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="vehicle_id" string="Vehicle Number - رقم المركبة"
+                                   attrs="{'invisible': [('entity_type','!=','vehicle')],
+                                           'required': [('entity_type','=','vehicle')]}"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                        </group>
+
+                        <!-- Step 3: Pass Type -->
+                        <group string="Step 3 - Pass Type - نوع التصريح"
+                               attrs="{'invisible': [('entity_type','=',False)]}">
+                            <field name="pass_type" string="Pass Type - نوع التصريح"
+                                   widget="selection"/>
+                        </group>
+
+                        <!-- Step 4: Documents on File -->
+                        <group string="Documents on File - المستندات المحفوظة"
+                               attrs="{'invisible': ['|', ('entity_type','!=','employee'), ('employee_id','=',False)]}">
+                            <group>
+                                <field name="doc_passport" widget="binary" readonly="1"
+                                       filename="doc_passport_name"
+                                       string="Passport - الجواز"
+                                       attrs="{'invisible': [('doc_passport','=',False)]}"/>
+                                <field name="doc_passport_name" invisible="1"/>
+                                <field name="doc_residency" widget="binary" readonly="1"
+                                       filename="doc_residency_name"
+                                       string="Residency - الإقامة"
+                                       attrs="{'invisible': [('doc_residency','=',False)]}"/>
+                                <field name="doc_residency_name" invisible="1"/>
+                                <field name="doc_civil_id" widget="binary" readonly="1"
+                                       filename="doc_civil_id_name"
+                                       string="Civil ID - البطاقة المدنية"
+                                       attrs="{'invisible': [('doc_civil_id','=',False)]}"/>
+                                <field name="doc_civil_id_name" invisible="1"/>
+                                <field name="doc_driving_license" widget="binary" readonly="1"
+                                       filename="doc_driving_license_name"
+                                       string="Driving License - رخصة القيادة"
+                                       attrs="{'invisible': [('doc_driving_license','=',False)]}"/>
+                                <field name="doc_driving_license_name" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="doc_ptw" widget="binary" readonly="1"
+                                       filename="doc_ptw_name"
+                                       string="PTW - إذن فتح الآبار"
+                                       attrs="{'invisible': [('doc_ptw','=',False)]}"/>
+                                <field name="doc_ptw_name" invisible="1"/>
+                                <field name="doc_koc_laptop" widget="binary" readonly="1"
+                                       filename="doc_koc_laptop_name"
+                                       string="KOC Laptop Pass - تصريح اللابتوب"
+                                       attrs="{'invisible': [('doc_koc_laptop','=',False)]}"/>
+                                <field name="doc_koc_laptop_name" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <group string="Documents on File - المستندات المحفوظة"
+                               attrs="{'invisible': ['|', ('entity_type','!=','vehicle'), ('vehicle_id','=',False)]}">
+                            <field name="doc_registration" widget="binary" readonly="1"
+                                   filename="doc_registration_name"
+                                   string="Registration - التسجيل"
+                                   attrs="{'invisible': [('doc_registration','=',False)]}"/>
+                            <field name="doc_registration_name" invisible="1"/>
+                            <field name="doc_third_party" widget="binary" readonly="1"
+                                   filename="doc_third_party_name"
+                                   string="3rd Party Inspection - فحص طرف ثالث"
+                                   attrs="{'invisible': [('doc_third_party','=',False)]}"/>
+                            <field name="doc_third_party_name" invisible="1"/>
+                            <field name="doc_clearance" widget="binary" readonly="1"
+                                   filename="doc_clearance_name"
+                                   string="Clearance Certificate - شهادة الفحص KOC"
+                                   attrs="{'invisible': [('doc_clearance','=',False)]}"/>
+                            <field name="doc_clearance_name" invisible="1"/>
+                        </group>
+
+                        <!-- Application History -->
+                        <group string="Application History - سجل الطلبات"
+                               attrs="{'invisible': [('pass_type','=',False)]}">
+                            <field name="history_ids" nolabel="1" readonly="1" colspan="2">
+                                <tree create="false" delete="false" editable="false"
+                                      decoration-success="state == 'issued'"
+                                      decoration-danger="state == 'rejected'"
+                                      decoration-info="state == 'submitted'">
+                                    <field name="event_date" string="Applied - التاريخ"/>
+                                    <field name="event_by" string="By - بواسطة"/>
+                                    <field name="state" string="Status - الحالة" widget="badge"
+                                           decoration-success="state == 'issued'"
+                                           decoration-danger="state == 'rejected'"
+                                           decoration-info="state == 'submitted'"/>
+                                    <field name="rejection_reason" string="Remarks - ملاحظات"/>
+                                </tree>
+                            </field>
+                        </group>
+
+                        <!-- Buttons -->
+                        <div attrs="{'invisible': [('pass_type','=',False)]}"
+                             style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+                            <button name="action_submit_application" type="object"
+                                    string="Submit Application - تقديم الطلب"
+                                    class="btn btn-primary"
+                                    attrs="{'invisible': [('has_open_submission','=',True)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                            <button name="action_open_issue_wizard" type="object"
+                                    string="Mark as Issued - إصدار"
+                                    class="btn btn-success"
+                                    attrs="{'invisible': [('has_open_submission','=',False)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                            <button name="action_open_reject_wizard" type="object"
+                                    string="Mark as Rejected - رفض"
+                                    class="btn btn-danger"
+                                    attrs="{'invisible': [('has_open_submission','=',False)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                        </div>
+
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ REJECT WIZARD ═══════════════════════════════════════════════════ -->
+    <record id="view_fp_app_reject_wizard" model="ir.ui.view">
+        <field name="name">field.pass.application.reject.wizard.form</field>
+        <field name="model">field.pass.application.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Application - رفض الطلب">
+                <group>
+                    <field name="entity_type" invisible="1"/>
+                    <field name="pass_type" invisible="1"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="vehicle_id" invisible="1"/>
+                    <field name="rejection_reason" string="Rejection Reason - سبب الرفض"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Confirm Rejection - تأكيد الرفض" class="btn-danger"/>
+                    <button special="cancel" string="Cancel - إلغاء"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ ISSUE WIZARD ════════════════════════════════════════════════════ -->
+    <record id="view_fp_app_issue_wizard" model="ir.ui.view">
+        <field name="name">field.pass.application.issue.wizard.form</field>
+        <field name="model">field.pass.application.issue.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Issue Pass - إصدار التصريح">
+                <group>
+                    <field name="entity_type" invisible="1"/>
+                    <field name="pass_type" invisible="1"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="vehicle_id" invisible="1"/>
+                    <field name="expiry_date" string="New Expiry Date - تاريخ الانتهاء الجديد"/>
+                    <field name="attachment_pass" widget="binary"
+                           filename="attachment_pass_name"
+                           string="Pass Document - وثيقة التصريح"/>
+                    <field name="attachment_pass_name" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Issue Pass - إصدار" class="btn-primary"/>
+                    <button special="cancel" string="Cancel - إلغاء"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ SERVER ACTION ═══════════════════════════════════════════════════ -->
+    <record id="action_fp_application_wizard" model="ir.actions.server">
+        <field name="name">Pass Applications - معاملات التصاريح</field>
+        <field name="model_id" ref="model_field_pass_application_wizard"/>
+        <field name="state">code</field>
+        <field name="code">
+record = env['field.pass.application.wizard'].create({})
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Pass Applications',
+    'res_model': 'field.pass.application.wizard',
+    'view_mode': 'form',
+    'target': 'inline',
+    'res_id': record.id,
+}
+        </field>
+    </record>
+
+</odoo>

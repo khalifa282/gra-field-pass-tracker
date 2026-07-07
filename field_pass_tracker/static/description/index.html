@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; margin: 0; padding: 0; }
+        .hero { background: linear-gradient(135deg, #1a365d 0%, #2563eb 100%); color: white; padding: 48px 40px; text-align: center; }
+        .hero h1 { font-size: 36px; font-weight: 700; margin: 0 0 12px; }
+        .hero h2 { font-size: 18px; font-weight: 400; margin: 0; opacity: 0.85; }
+        .badge { display: inline-block; background: #f59e0b; color: #1e293b; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-top: 16px; }
+        .section { padding: 40px; max-width: 900px; margin: 0 auto; }
+        .section h3 { font-size: 22px; font-weight: 700; color: #1a365d; border-left: 4px solid #2563eb; padding-left: 12px; margin-bottom: 20px; }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .feature { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; }
+        .feature .icon { font-size: 28px; margin-bottom: 10px; }
+        .feature h4 { font-size: 15px; font-weight: 700; color: #1a365d; margin: 0 0 8px; }
+        .feature p { font-size: 13px; color: #64748b; margin: 0; line-height: 1.5; }
+        .workflow { background: #eff6ff; border-radius: 10px; padding: 24px; margin-bottom: 40px; }
+        .workflow ol { margin: 0; padding-left: 20px; }
+        .workflow li { font-size: 14px; color: #334155; margin-bottom: 8px; line-height: 1.6; }
+        .screenshot-note { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px; font-size: 13px; color: #92400e; margin-bottom: 40px; }
+        .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .spec-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+        .spec-box h4 { font-size: 14px; font-weight: 700; color: #1a365d; margin: 0 0 10px; }
+        .spec-box ul { margin: 0; padding-left: 18px; }
+        .spec-box li { font-size: 13px; color: #475569; margin-bottom: 4px; }
+        .footer { background: #1a365d; color: white; padding: 24px 40px; text-align: center; font-size: 13px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>GRA — Gov Relation Assistance</h1>
+    <h2>Field Pass &amp; Document Compliance Tracker for Oilfield Operations</h2>
+    <div class="badge">Odoo 16 | OPL-1</div>
+</div>
+
+<div class="section">
+    <h3>Overview</h3>
+    <p style="font-size:15px;line-height:1.7;color:#334155;margin-bottom:32px;">
+        GRA is a comprehensive compliance management module designed for oilfield operations.
+        It tracks employee and vehicle field passes, document expiry dates, and renewal workflows
+        — all integrated within Odoo. Eliminate double data entry, enforce prerequisites,
+        and get instant visibility into your team's compliance status.
+    </p>
+
+    <div class="features">
+        <div class="feature">
+            <div class="icon">🎫</div>
+            <h4>Field Pass Tracking</h4>
+            <p>Track KOC, RATQA, Wafra, Fawares, and Temp passes for employees and vehicles with real-time status.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">📄</div>
+            <h4>Document Management</h4>
+            <p>Monitor passport, residency, civil ID, driving license, PTW, and vehicle documents with expiry alerts.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">🔄</div>
+            <h4>Renewal Workflows</h4>
+            <p>Event-log based renewal and application wizards with submit, reject, and issue tracking per record.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">📊</div>
+            <h4>Smart Dashboard</h4>
+            <p>4-tab dashboard showing field passes, documents, progress pipeline, and employee statistics.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">🔒</div>
+            <h4>Prerequisites Enforcement</h4>
+            <p>Hard blocks prevent out-of-order processing — Driving Authority requires HSE Training, PTW requires KOC Pass.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">👥</div>
+            <h4>3-Level Security</h4>
+            <p>Viewer, Admin, and Manager roles with granular access control over records, renewals, and administration.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">📈</div>
+            <h4>Processing Statistics</h4>
+            <p>Average processing time by document type, pass type, and nationality for operational insights.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">🚗</div>
+            <h4>Vehicle Compliance</h4>
+            <p>Full vehicle document chain: Registration → 3rd Party Inspection → Clearance Certificate with prerequisites.</p>
+        </div>
+        <div class="feature">
+            <div class="icon">🌐</div>
+            <h4>Bilingual UI</h4>
+            <p>Full Arabic and English interface throughout — labels, status badges, and menu items in both languages.</p>
+        </div>
+    </div>
+
+    <h3>How It Works</h3>
+    <div class="workflow">
+        <ol>
+            <li><strong>Setup:</strong> Configure departments with client types (KOC, WJO), set warning thresholds in Alert Settings</li>
+            <li><strong>Add Records:</strong> Create employee and vehicle records with basic information</li>
+            <li><strong>Submit Renewals:</strong> Use Document Renewal wizard to submit, reject, or issue document renewals</li>
+            <li><strong>Apply for Passes:</strong> Use Pass Applications wizard to manage field pass applications</li>
+            <li><strong>Monitor:</strong> Dashboard shows live status across all departments with clickable cards</li>
+            <li><strong>Track History:</strong> Full event log on every employee and vehicle record</li>
+        </ol>
+    </div>
+
+    <h3>Technical Specifications</h3>
+    <div class="specs">
+        <div class="spec-box">
+            <h4>Requirements</h4>
+            <ul>
+                <li>Odoo 16.0</li>
+                <li>Modules: base, hr, mail, base_setup</li>
+                <li>No external dependencies</li>
+            </ul>
+        </div>
+        <div class="spec-box">
+            <h4>Key Models</h4>
+            <ul>
+                <li>field.pass.employee</li>
+                <li>field.pass.vehicle</li>
+                <li>field.pass.renewal</li>
+                <li>field.pass.application</li>
+                <li>field.pass.dashboard</li>
+            </ul>
+        </div>
+        <div class="spec-box">
+            <h4>Security Groups</h4>
+            <ul>
+                <li>Viewer — Read only access</li>
+                <li>Admin — Edit and submit renewals</li>
+                <li>Manager — Full access + administration</li>
+            </ul>
+        </div>
+        <div class="spec-box">
+            <h4>Pass Types Supported</h4>
+            <ul>
+                <li>KOC Field Pass</li>
+                <li>RATQA &amp; Abdally</li>
+                <li>Wafra Pass</li>
+                <li>Fawares Pass</li>
+                <li>Temp Field Pass</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    GRA — Gov Relation Assistance | Odoo 16 | OPL-1 License
+</div>
+
+</body>
+</html>

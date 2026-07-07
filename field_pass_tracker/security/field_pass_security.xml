@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="module_category_field_pass" model="ir.module.category">
+            <field name="name">Field Pass Tracker</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="group_fp_viewer" model="res.groups">
+            <field name="name">Viewer</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+        </record>
+
+        <record id="group_fp_admin" model="res.groups">
+            <field name="name">Admin</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_viewer'))]"/>
+        </record>
+
+        <record id="group_fp_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_admin'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,35 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fp_alert_manager,alert.config manager,model_field_pass_alert_config,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_contract_viewer,contract viewer,model_field_pass_contract,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_contract_admin,contract admin,model_field_pass_contract,field_pass_tracker.group_fp_admin,1,0,0,0
+access_fp_contract_manager,contract manager,model_field_pass_contract,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_employee_viewer,employee viewer,model_field_pass_employee,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_employee_admin,employee admin,model_field_pass_employee,field_pass_tracker.group_fp_admin,1,1,0,0
+access_fp_employee_manager,employee manager,model_field_pass_employee,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_vehicle_viewer,vehicle viewer,model_field_pass_vehicle,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_vehicle_admin,vehicle admin,model_field_pass_vehicle,field_pass_tracker.group_fp_admin,1,1,0,0
+access_fp_vehicle_manager,vehicle manager,model_field_pass_vehicle,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_pass_viewer,field.pass viewer,model_field_pass,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_pass_admin,field.pass admin,model_field_pass,field_pass_tracker.group_fp_admin,1,1,0,0
+access_fp_pass_manager,field.pass manager,model_field_pass,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_dashboard_viewer,dashboard viewer,model_field_pass_dashboard,field_pass_tracker.group_fp_viewer,1,1,1,0
+access_fp_dashboard_admin,dashboard admin,model_field_pass_dashboard,field_pass_tracker.group_fp_admin,1,1,1,0
+access_fp_dashboard_manager,dashboard manager,model_field_pass_dashboard,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_dashboard_dept_all,dashboard dept all,model_field_pass_dashboard_dept,field_pass_tracker.group_fp_viewer,1,1,1,1
+access_fp_lang_manager,language manager,model_field_pass_language,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_renewal_viewer,renewal viewer,model_field_pass_renewal,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_renewal_admin,renewal admin,model_field_pass_renewal,field_pass_tracker.group_fp_admin,1,1,1,0
+access_fp_renewal_manager,renewal manager,model_field_pass_renewal,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_application_viewer,application viewer,model_field_pass_application,field_pass_tracker.group_fp_viewer,1,0,0,0
+access_fp_application_admin,application admin,model_field_pass_application,field_pass_tracker.group_fp_admin,1,1,1,0
+access_fp_application_manager,application manager,model_field_pass_application,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_app_wizard_viewer,app wizard viewer,model_field_pass_application_wizard,field_pass_tracker.group_fp_viewer,1,1,1,1
+access_fp_app_wizard_admin,app wizard admin,model_field_pass_application_wizard,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_app_wizard_manager,app wizard manager,model_field_pass_application_wizard,field_pass_tracker.group_fp_manager,1,1,1,1
+access_fp_renewal_wizard_all,renewal wizard all,model_field_pass_renewal_wizard,field_pass_tracker.group_fp_viewer,1,1,1,1
+access_fp_renewal_issue_wiz,renewal issue wiz,model_field_pass_renewal_issue_wizard,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_renewal_reject_wiz,renewal reject wiz,model_field_pass_renewal_reject_wizard,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_app_reject_wiz,app reject wiz,model_field_pass_application_reject_wizard,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_app_issue_wiz,app issue wiz,model_field_pass_application_issue_wizard,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_stat_line_admin,stat line admin,model_field_pass_stat_line,field_pass_tracker.group_fp_admin,1,1,1,1
+access_fp_stat_line_manager,stat line manager,model_field_pass_stat_line,field_pass_tracker.group_fp_manager,1,1,1,1

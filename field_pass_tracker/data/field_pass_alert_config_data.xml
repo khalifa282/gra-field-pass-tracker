@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="alert_passport" model="field.pass.alert.config">
+            <field name="document_type">passport</field>
+            <field name="warn_days_before">90</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_residency" model="field.pass.alert.config">
+            <field name="document_type">residency</field>
+            <field name="warn_days_before">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_civil_id" model="field.pass.alert.config">
+            <field name="document_type">civil_id</field>
+            <field name="warn_days_before">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_driving_license" model="field.pass.alert.config">
+            <field name="document_type">driving_license</field>
+            <field name="warn_days_before">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_driving_authority" model="field.pass.alert.config">
+            <field name="document_type">driving_authority</field>
+            <field name="warn_days_before">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_driving_hse" model="field.pass.alert.config">
+            <field name="document_type">driving_hse</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_ptw" model="field.pass.alert.config">
+            <field name="document_type">ptw</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_koc_laptop" model="field.pass.alert.config">
+            <field name="document_type">koc_laptop</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_registration" model="field.pass.alert.config">
+            <field name="document_type">registration</field>
+            <field name="warn_days_before">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_third_party_inspection" model="field.pass.alert.config">
+            <field name="document_type">third_party_inspection</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_third_party_duration" model="field.pass.alert.config">
+            <field name="document_type">third_party_inspection_duration</field>
+            <field name="warn_days_before">365</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_clearance" model="field.pass.alert.config">
+            <field name="document_type">clearance_certificate</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_fp_koc" model="field.pass.alert.config">
+            <field name="document_type">fp_koc</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_fp_ratqa" model="field.pass.alert.config">
+            <field name="document_type">fp_ratqa_abdally</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_fp_wafra" model="field.pass.alert.config">
+            <field name="document_type">fp_wafra</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_fp_fawares" model="field.pass.alert.config">
+            <field name="document_type">fp_fawares</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="alert_fp_temp" model="field.pass.alert.config">
+            <field name="document_type">fp_temp</field>
+            <field name="warn_days_before">14</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+    </data>
+</odoo>

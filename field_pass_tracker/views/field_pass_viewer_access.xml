@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Make Documents and Field Passes tabs readonly for Viewers on employee -->
+    <record id="view_fp_employee_form_viewer" model="ir.ui.view">
+        <field name="name">field.pass.employee.form.viewer</field>
+        <field name="model">field.pass.employee</field>
+        <field name="inherit_id" ref="view_fp_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='documents']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='field_passes']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Make Documents and Field Passes tabs readonly for Viewers on vehicle -->
+    <record id="view_fp_vehicle_form_viewer" model="ir.ui.view">
+        <field name="name">field.pass.vehicle.form.viewer</field>
+        <field name="model">field.pass.vehicle</field>
+        <field name="inherit_id" ref="view_fp_vehicle_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='documents']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='field_passes']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

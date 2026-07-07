@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══ RENEWAL WIZARD ══════════════════════════════════════════════════ -->
+    <record id="view_fp_renewal_wizard_form" model="ir.ui.view">
+        <field name="name">field.pass.renewal.wizard.form</field>
+        <field name="model">field.pass.renewal.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Document Renewal - تجديد المستند" create="false" delete="false">
+                <sheet>
+                    <field name="entity_type" invisible="1"/>
+                    <field name="has_open_submission" invisible="1"/>
+                    <div style="max-width:950px;">
+
+                        <!-- Step 1 -->
+                        <group string="Step 1 - Select Document Type - اختر نوع المستند">
+                            <field name="document_type" string="Document Type - نوع المستند"
+                                   widget="selection"/>
+                        </group>
+
+                        <!-- Step 2 -->
+                        <group string="Step 2 - Select Employee or Vehicle - اختر الموظف أو المركبة"
+                               attrs="{'invisible': [('document_type','=',False)]}">
+                            <field name="employee_id" string="Employee - الموظف"
+                                   attrs="{'invisible': [('entity_type','=','vehicle')]}"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="vehicle_id" string="Vehicle - المركبة"
+                                   attrs="{'invisible': [('entity_type','=','employee')]}"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                        </group>
+
+                        <!-- Renewal History -->
+                        <group string="Renewal History - سجل التجديدات"
+                               attrs="{'invisible': [('document_type','=',False)]}">
+                            <field name="history_ids" nolabel="1" readonly="1" colspan="2">
+                                <tree create="false" delete="false" editable="false"
+                                      decoration-success="event_type == 'issued'"
+                                      decoration-danger="event_type == 'rejected'"
+                                      decoration-info="event_type == 'submitted'">
+                                    <field name="event_date" string="Applied - التاريخ"/>
+                                    <field name="event_by" string="By - بواسطة"/>
+                                    <field name="event_type" string="Status - الحالة" widget="badge"
+                                           decoration-success="event_type == 'issued'"
+                                           decoration-danger="event_type == 'rejected'"
+                                           decoration-info="event_type == 'submitted'"/>
+                                    <field name="rejection_reason" string="Remarks - ملاحظات"/>
+                                </tree>
+                            </field>
+                        </group>
+
+                        <!-- Buttons -->
+                        <div attrs="{'invisible': [('document_type','=',False)]}"
+                             style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+                            <button name="action_submit_renewal" type="object"
+                                    string="Submit Renewal Request - تقديم طلب التجديد"
+                                    class="btn btn-primary"
+                                    attrs="{'invisible': [('has_open_submission','=',True)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                            <button name="action_open_issue_wizard" type="object"
+                                    string="Mark as Issued - إصدار"
+                                    class="btn btn-success"
+                                    attrs="{'invisible': [('has_open_submission','=',False)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                            <button name="action_open_reject_wizard" type="object"
+                                    string="Mark as Rejected - رفض"
+                                    class="btn btn-danger"
+                                    attrs="{'invisible': [('has_open_submission','=',False)]}"
+                                    groups="field_pass_tracker.group_fp_admin"/>
+                        </div>
+
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ ISSUE WIZARD ════════════════════════════════════════════════════ -->
+    <record id="view_fp_renewal_issue_wizard" model="ir.ui.view">
+        <field name="name">field.pass.renewal.issue.wizard.form</field>
+        <field name="model">field.pass.renewal.issue.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Issue Document - إصدار المستند">
+                <group>
+                    <field name="document_type" invisible="1"/>
+                    <field name="entity_type" invisible="1"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="vehicle_id" invisible="1"/>
+                    <field name="new_expiry_date" string="New Expiry Date - تاريخ الانتهاء الجديد"/>
+                    <field name="attachment_new" widget="binary"
+                           filename="attachment_new_name"
+                           string="New Document - المستند الجديد"/>
+                    <field name="attachment_new_name" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Confirm - تأكيد" class="btn-primary"/>
+                    <button special="cancel" string="Cancel - إلغاء"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ REJECT WIZARD ═══════════════════════════════════════════════════ -->
+    <record id="view_fp_renewal_reject_wizard" model="ir.ui.view">
+        <field name="name">field.pass.renewal.reject.wizard.form</field>
+        <field name="model">field.pass.renewal.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Renewal - رفض التجديد">
+                <group>
+                    <field name="document_type" invisible="1"/>
+                    <field name="entity_type" invisible="1"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="vehicle_id" invisible="1"/>
+                    <field name="rejection_reason" string="Rejection Reason - سبب الرفض"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Confirm Rejection - تأكيد الرفض" class="btn-danger"/>
+                    <button special="cancel" string="Cancel - إلغاء"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ══ SERVER ACTION ═══════════════════════════════════════════════════ -->
+    <record id="action_fp_renewal_wizard" model="ir.actions.server">
+        <field name="name">Document Renewal - تجديد المستندات</field>
+        <field name="model_id" ref="model_field_pass_renewal_wizard"/>
+        <field name="state">code</field>
+        <field name="code">
+record = env['field.pass.renewal.wizard'].create({})
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Document Renewal',
+    'res_model': 'field.pass.renewal.wizard',
+    'view_mode': 'form',
+    'target': 'inline',
+    'res_id': record.id,
+}
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_fp_root" name="Field Pass" sequence="90"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_dashboard" name="Dashboard"
+              parent="menu_fp_root" sequence="1"
+              action="field_pass_tracker.action_field_pass_dashboard"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_records" name="Records"
+              parent="menu_fp_root" sequence="10"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_employees" name="Employees"
+              parent="menu_fp_records" sequence="10"
+              action="field_pass_tracker.action_fp_employee"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_vehicles" name="Vehicles"
+              parent="menu_fp_records" sequence="20"
+              action="field_pass_tracker.action_fp_vehicle"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_field_passes" name="Field Passes"
+              parent="menu_fp_records" sequence="30"
+              action="field_pass_tracker.action_field_pass"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_renewals_root" name="Renewals"
+              parent="menu_fp_root" sequence="20"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_renewal_wizard" name="Document Renewal"
+              parent="menu_fp_renewals_root" sequence="10"
+              action="field_pass_tracker.action_fp_renewal_wizard"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_application_wizard" name="Pass Applications"
+              parent="menu_fp_renewals_root" sequence="20"
+              action="field_pass_tracker.action_fp_application_wizard"
+              groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_admin" name="Administration"
+              parent="menu_fp_root" sequence="50"
+              groups="field_pass_tracker.group_fp_manager"/>
+    <menuitem id="menu_fp_departments" name="Departments"
+              parent="menu_fp_admin" sequence="10"
+              action="hr.hr_department_tree_action"
+              groups="field_pass_tracker.group_fp_manager"/>
+    <menuitem id="menu_fp_alert_config" name="Alert Settings"
+              parent="menu_fp_admin" sequence="20"
+              action="field_pass_tracker.action_fp_alert_config"
+              groups="field_pass_tracker.group_fp_manager"/>
+</odoo>
