@@ -33,5 +33,6 @@
     'installable': True,
     'application': True,
     'auto_install': False,
+    'images': ['static/description/banner.png'],
     'translations': ['i18n/ar.po'],
 }
