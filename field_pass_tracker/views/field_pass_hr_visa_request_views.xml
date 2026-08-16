@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_fp_hr_visa_request_tree" model="ir.ui.view">
+        <field name="name">field.pass.hr.visa.request.tree</field>
+        <field name="model">field.pass.hr.visa.request</field>
+        <field name="arch" type="xml">
+            <tree string="Work Visa Requests - طلبات سمة الدخول"
+                  decoration-danger="state=='rejected'" decoration-success="state=='closed'"
+                  decoration-info="state=='submitted'">
+                <field name="name"/>
+                <field name="candidate_name"/>
+                <field name="company_id"/>
+                <field name="department_id"/>
+                <field name="state" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fp_hr_visa_request_form" model="ir.ui.view">
+        <field name="name">field.pass.hr.visa.request.form</field>
+        <field name="model">field.pass.hr.visa.request</field>
+        <field name="arch" type="xml">
+            <form string="Work Visa Request - طلب سمة الدخول">
+                <header>
+                    <button name="action_submit" type="object" string="Submit - إرسال"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','draft')]}"/>
+                    <button name="action_open_reject_wizard" type="object" string="Reject - رفض"
+                            class="btn-danger" attrs="{'invisible': [('state','!=','submitted')]}"/>
+                    <button name="action_mark_under_process" type="object" string="Mark Under Process - قيد المعالجة"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','submitted')]}"/>
+                    <button name="action_complete" type="object" string="Complete - إكمال"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','under_process')]}"/>
+                    <button name="action_close_now" type="object" string="Close (Visa Only) - إغلاق (السمة فقط)"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','completed')]}"/>
+                    <button name="action_keep_open" type="object" string="Keep Open (Add More Docs) - إبقاء مفتوحاً"
+                            class="btn-secondary" attrs="{'invisible': [('state','!=','completed')]}"/>
+                    <button name="action_mark_candidate_arrived" type="object" string="Candidate Arrived - وصول المرشح"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','awaiting_additional_docs')]}"/>
+                    <button name="action_issue_work_permit" type="object" string="Issue Work Permit - إصدار إذن العمل"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','candidate_arrived')]}"/>
+                    <button name="action_finalize" type="object" string="Finalize &amp; Close - إنهاء وإغلاق"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','issuing_civil_id')]}"/>
+                    <button name="action_reopen" type="object" string="Reopen - إعادة فتح"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','rejected')]}"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,under_process,completed,awaiting_additional_docs,candidate_arrived,issuing_civil_id,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <group string="Candidate Details - بيانات المرشح">
+                        <group>
+                            <field name="candidate_name"/>
+                            <field name="candidate_name_ar"/>
+                            <field name="passport_no"/>
+                            <field name="candidate_contact_no"/>
+                        </group>
+                        <group>
+                            <field name="company_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="department_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="internal_position_title"/>
+                            <field name="suggested_position_title"/>
+                            <field name="salary"/>
+                        </group>
+                    </group>
+
+                    <group string="Documents - المستندات">
+                        <field name="attachment_passport" widget="binary" filename="attachment_passport_name" string="Passport - جواز السفر"/>
+                        <field name="attachment_passport_name" invisible="1"/>
+                        <field name="attachment_education_degree" widget="binary" filename="attachment_education_degree_name" string="Education Degree - الشهادة الدراسية"/>
+                        <field name="attachment_education_degree_name" invisible="1"/>
+                        <field name="attachment_job_offer" widget="binary" filename="attachment_job_offer_name" string="Signed Job Offer - عرض العمل الموقع"/>
+                        <field name="attachment_job_offer_name" invisible="1"/>
+                        <field name="attachment_cv" widget="binary" filename="attachment_cv_name" string="CV - السيرة الذاتية"/>
+                        <field name="attachment_cv_name" invisible="1"/>
+                    </group>
+
+                    <group string="Rejection - الرفض" attrs="{'invisible': [('state','!=','rejected')]}">
+                        <field name="rejection_reason" readonly="1"/>
+                    </group>
+
+                    <group string="Issued Visa - سمة الدخول الصادرة"
+                           attrs="{'invisible': [('state','not in',['under_process','completed','awaiting_additional_docs','candidate_arrived','issuing_civil_id','closed'])]}">
+                        <field name="attachment_issued_visa" widget="binary" filename="attachment_issued_visa_name"
+                               attrs="{'readonly': [('state','!=','under_process')]}"/>
+                        <field name="attachment_issued_visa_name" invisible="1"/>
+                    </group>
+
+                    <group string="Awaiting Additional Documents - بانتظار مستندات إضافية"
+                           attrs="{'invisible': [('state','not in',['awaiting_additional_docs','candidate_arrived','issuing_civil_id','closed'])]}">
+                        <field name="attachment_attested_education_cert" widget="binary" filename="attachment_attested_education_cert_name" string="Attested Education Certificate - شهادة مصدقة"/>
+                        <field name="attachment_attested_education_cert_name" invisible="1"/>
+                        <field name="attachment_education_transcript" widget="binary" filename="attachment_education_transcript_name" string="Education Transcript - كشف الدرجات"/>
+                        <field name="attachment_education_transcript_name" invisible="1"/>
+                        <field name="attachment_high_school_degree" widget="binary" filename="attachment_high_school_degree_name" string="High School - شهادة الثانوية"/>
+                        <field name="attachment_high_school_degree_name" invisible="1"/>
+                        <field name="attachment_medical_checkup" widget="binary" filename="attachment_medical_checkup_name" string="Medical Checkup Certificate - شهادة الفحص الطبي"/>
+                        <field name="attachment_medical_checkup_name" invisible="1"/>
+                        <field name="attachment_fingerprints" widget="binary" filename="attachment_fingerprints_name" string="Fingerprints - البصمات"/>
+                        <field name="attachment_fingerprints_name" invisible="1"/>
+                        <field name="attachment_no_criminal_record" widget="binary" filename="attachment_no_criminal_record_name" string="No Criminal Record Certificate - شهادة لا حكم عليه"/>
+                        <field name="attachment_no_criminal_record_name" invisible="1"/>
+                    </group>
+
+                    <group string="Candidate Arrived - وصول المرشح"
+                           attrs="{'invisible': [('state','not in',['candidate_arrived','issuing_civil_id','closed'])]}">
+                        <field name="degree_equivalency_note" colspan="2"
+                               attrs="{'readonly': [('state','!=','candidate_arrived')]}"/>
+                        <field name="attachment_work_permit_copy" widget="binary" filename="attachment_work_permit_copy_name" string="Work Permit Copy - نسخة إذن العمل"/>
+                        <field name="attachment_work_permit_copy_name" invisible="1"/>
+                    </group>
+
+                    <group string="Issuing Civil ID - إصدار البطاقة المدنية"
+                           attrs="{'invisible': [('state','not in',['issuing_civil_id','closed'])]}">
+                        <field name="attachment_blood_type" widget="binary" filename="attachment_blood_type_name" string="Blood Type - فصيلة الدم"/>
+                        <field name="attachment_blood_type_name" invisible="1"/>
+                        <field name="attachment_personal_picture" widget="binary" filename="attachment_personal_picture_name" string="Personal Picture - صورة شخصية"/>
+                        <field name="attachment_personal_picture_name" invisible="1"/>
+                        <field name="attachment_rental_contract" widget="binary" filename="attachment_rental_contract_name" string="Rental Contract - عقد إيجار"/>
+                        <field name="attachment_rental_contract_name" invisible="1"/>
+                    </group>
+
+                    <group string="Final Closure Documents - مستندات الإغلاق النهائي"
+                           attrs="{'invisible': [('state','not in',['issuing_civil_id','closed'])]}">
+                        <field name="attachment_health_insurance" widget="binary" filename="attachment_health_insurance_name" string="Health Insurance - الضمان الصحي"/>
+                        <field name="attachment_health_insurance_name" invisible="1"/>
+                        <field name="attachment_moi_migration" widget="binary" filename="attachment_moi_migration_name" string="MOI Migration - الهجرة"/>
+                        <field name="attachment_moi_migration_name" invisible="1"/>
+                        <field name="attachment_final_civil_id" widget="binary" filename="attachment_final_civil_id_name" string="Civil ID - البطاقة المدنية"/>
+                        <field name="attachment_final_civil_id_name" invisible="1"/>
+                        <field name="civil_id_number"/>
+                    </group>
+
+                    <notebook>
+                        <page name="history" string="History - السجل">
+                            <field name="history_ids" readonly="1">
+                                <tree>
+                                    <field name="event_date"/>
+                                    <field name="event_by"/>
+                                    <field name="event_type" widget="badge"/>
+                                    <field name="notes"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fp_hr_visa_request" model="ir.actions.act_window">
+        <field name="name">Work Visa Requests - طلبات سمة الدخول</field>
+        <field name="res_model">field.pass.hr.visa.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_fp_hr_visa_reject_wizard_form" model="ir.ui.view">
+        <field name="name">field.pass.hr.visa.reject.wizard.form</field>
+        <field name="model">field.pass.hr.visa.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Request - رفض الطلب">
+                <group>
+                    <field name="request_id" invisible="1"/>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm - تأكيد" class="btn-primary"/>
+                    <button special="cancel" string="Cancel - إلغاء"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

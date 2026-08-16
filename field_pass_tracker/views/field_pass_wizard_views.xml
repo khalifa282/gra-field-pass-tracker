@@ -41,6 +41,11 @@
                         <group string="Documents on File - المستندات المحفوظة"
                                attrs="{'invisible': ['|', ('entity_type','!=','employee'), ('employee_id','=',False)]}">
                             <group>
+                                <field name="doc_cv_approval" widget="binary" readonly="1"
+                                       filename="doc_cv_approval_name"
+                                       string="CV Approval - اعتماد السيرة الذاتية"
+                                       attrs="{'invisible': [('doc_cv_approval','=',False)]}"/>
+                                <field name="doc_cv_approval_name" invisible="1"/>
                                 <field name="doc_passport" widget="binary" readonly="1"
                                        filename="doc_passport_name"
                                        string="Passport - الجواز"
@@ -61,19 +66,25 @@
                                        string="Driving License - رخصة القيادة"
                                        attrs="{'invisible': [('doc_driving_license','=',False)]}"/>
                                 <field name="doc_driving_license_name" invisible="1"/>
+                                <field name="doc_driving_authority" widget="binary" readonly="1"
+                                       filename="doc_driving_authority_name"
+                                       string="Driving Authority - تفويض القيادة"
+                                       attrs="{'invisible': [('doc_driving_authority','=',False)]}"/>
+                                <field name="doc_driving_authority_name" invisible="1"/>
+                                <field name="doc_wjo_hse" widget="binary" readonly="1"
+                                       filename="doc_wjo_hse_name"
+                                       string="WJO HSE Certificate - شهادة السلامة WJO"
+                                       attrs="{'invisible': [('doc_wjo_hse','=',False)]}"/>
+                                <field name="doc_wjo_hse_name" invisible="1"/>
+                                <field name="doc_driving_hse" widget="binary" readonly="1"
+                                       filename="doc_driving_hse_name"
+                                       string="Driving HSE Certificate - شهادة سلامة القيادة"
+                                       attrs="{'invisible': [('doc_driving_hse','=',False)]}"/>
+                                <field name="doc_driving_hse_name" invisible="1"/>
                             </group>
-                            <group>
-                                <field name="doc_ptw" widget="binary" readonly="1"
-                                       filename="doc_ptw_name"
-                                       string="PTW - إذن فتح الآبار"
-                                       attrs="{'invisible': [('doc_ptw','=',False)]}"/>
-                                <field name="doc_ptw_name" invisible="1"/>
-                                <field name="doc_koc_laptop" widget="binary" readonly="1"
-                                       filename="doc_koc_laptop_name"
-                                       string="KOC Laptop Pass - تصريح اللابتوب"
-                                       attrs="{'invisible': [('doc_koc_laptop','=',False)]}"/>
-                                <field name="doc_koc_laptop_name" invisible="1"/>
-                            </group>
+                            <!-- NOTE: PTW / KOC Laptop Pass document preview removed here —
+                                 their attachment now lives on the field.pass record itself
+                                 (uploaded during Issue), not as an Employee document. -->
                         </group>
 
                         <group string="Documents on File - المستندات المحفوظة"
@@ -118,20 +129,20 @@
                         <div attrs="{'invisible': [('pass_type','=',False)]}"
                              style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
                             <button name="action_submit_application" type="object"
-                                    string="Submit Application - تقديم الطلب"
+                                    string="Submit Pass Renewal - تقديم تجديد التصريح"
                                     class="btn btn-primary"
                                     attrs="{'invisible': [('has_open_submission','=',True)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                             <button name="action_open_issue_wizard" type="object"
                                     string="Mark as Issued - إصدار"
                                     class="btn btn-success"
                                     attrs="{'invisible': [('has_open_submission','=',False)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                             <button name="action_open_reject_wizard" type="object"
                                     string="Mark as Rejected - رفض"
                                     class="btn btn-danger"
                                     attrs="{'invisible': [('has_open_submission','=',False)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                         </div>
 
                     </div>
@@ -145,7 +156,7 @@
         <field name="name">field.pass.application.reject.wizard.form</field>
         <field name="model">field.pass.application.reject.wizard</field>
         <field name="arch" type="xml">
-            <form string="Reject Application - رفض الطلب">
+            <form string="Reject Pass Renewal - رفض تجديد التصريح">
                 <group>
                     <field name="entity_type" invisible="1"/>
                     <field name="pass_type" invisible="1"/>
@@ -197,10 +208,10 @@
 record = env['field.pass.application.wizard'].create({})
 action = {
     'type': 'ir.actions.act_window',
-    'name': 'Pass Applications',
+    'name': 'Pass Renewals - تجديد التصاريح',
     'res_model': 'field.pass.application.wizard',
     'view_mode': 'form',
-    'target': 'inline',
+    'target': 'current',
     'res_id': record.id,
 }
         </field>

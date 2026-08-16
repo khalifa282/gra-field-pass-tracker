@@ -1,28 +1,216 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- NOTE: noupdate="1" protection is tracked permanently in Odoo's
+             own ir.model.data table from the moment a record is FIRST
+             created — not re-evaluated from the current XML structure on
+             each upgrade. So the values below are correct for a FRESH
+             install, but if these specific records already exist in a
+             database from an earlier version of this module, a rename
+             here won't take effect via Upgrade — it needs a one-time
+             direct write (confirmed via Odoo shell for the original
+             category_id/group_fp_viewer/admin/manager on 2026-07-26). -->
 
         <record id="module_category_field_pass" model="ir.module.category">
-            <field name="name">Field Pass Tracker</field>
+            <field name="name">Government Relation Assistance App</field>
             <field name="sequence">50</field>
         </record>
 
+        <!-- ══ GRO track — Company Documents + Field Pass tracking, company-
+             wide. Technical IDs (group_fp_viewer/admin/manager) deliberately
+             UNCHANGED from the original 3-tier model — only the display
+             names change here — so none of the 50+ existing references
+             across the module (menus, model access, view restrictions)
+             need to be touched at all. ══════════════════════════════════ -->
         <record id="group_fp_viewer" model="res.groups">
-            <field name="name">Viewer</field>
+            <field name="name">GRO Viewer</field>
             <field name="category_id" ref="module_category_field_pass"/>
         </record>
 
         <record id="group_fp_admin" model="res.groups">
-            <field name="name">Admin</field>
+            <field name="name">GRO Admin</field>
             <field name="category_id" ref="module_category_field_pass"/>
             <field name="implied_ids" eval="[(4, ref('group_fp_viewer'))]"/>
         </record>
 
         <record id="group_fp_manager" model="res.groups">
-            <field name="name">Manager</field>
+            <field name="name">GRO Manager</field>
             <field name="category_id" ref="module_category_field_pass"/>
             <field name="implied_ids" eval="[(4, ref('group_fp_admin'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ══ HR track — Residency Transfer + Work Visa Requests. ═══════ -->
+        <record id="group_fp_hr_viewer" model="res.groups">
+            <field name="name">HR Viewer</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+        </record>
+
+        <record id="group_fp_hr_admin" model="res.groups">
+            <field name="name">HR Admin</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_hr_viewer'))]"/>
+        </record>
+
+        <record id="group_fp_hr_manager" model="res.groups">
+            <field name="name">HR Manager</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_hr_admin'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ══ OPS track — same Employee/Vehicle/Pass data as GRO, but
+             DEPARTMENT-WALLED: users with ONLY OPS access cannot see
+             anything outside their assigned department(s) at all (not just
+             restricted from editing — confirmed: fully invisible), enforced
+             via a record rule (Stage 2), not just group-level access. Now a
+             full 3-tier hierarchy (Viewer/Admin/Manager) — supersedes the
+             earlier "2-tier, no Admin" decision. ═══════════════════════════ -->
+        <record id="group_fp_ops_viewer" model="res.groups">
+            <field name="name">OPS Viewer</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+        </record>
+
+        <record id="group_fp_ops_admin" model="res.groups">
+            <field name="name">OPS Admin</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_ops_viewer'))]"/>
+        </record>
+
+        <record id="group_fp_ops_manager" model="res.groups">
+            <field name="name">OPS Manager</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_ops_admin'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- ══ Super Admin — independent GRANT (you don't need to already be
+             a Manager to receive it), but internally implies all 3 top-tier
+             Manager groups, so it automatically inherits their FULL access
+             to every model without needing every single access rule
+             duplicated separately for a 4th "super" concept. This is what
+             "access to everything" actually means in practice. ═══════════ -->
+        <record id="group_fp_super_admin" model="res.groups">
+            <field name="name">Super Admin</field>
+            <field name="category_id" ref="module_category_field_pass"/>
+            <field name="implied_ids" eval="[(4, ref('group_fp_manager')), (4, ref('group_fp_hr_manager')), (4, ref('group_fp_ops_manager'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+    </data>
+
+    <!-- ══ OPS department-scoping — confirmed design: fully walled off, not
+         just restricted from editing. A user sees a department's Employee/
+         Vehicle records only if they hold ANY of that department's 6 OPS
+         slots (Manager, Admin 1/2, Viewer 1/2/3) — confirmed all 6 count
+         equally. Only applies to OPS-tier groups; GRO/HR/Super Admin stay
+         company-wide, untouched by this rule. ═══════════════════════════
+
+         IMPORTANT: Super Admin automatically inherits OPS Manager
+         membership (see implied_ids above), which would otherwise
+         accidentally wall them off too. The explicit full-access rules
+         below exist specifically to prevent that — Odoo combines multiple
+         matching rules for the same user with OR, so this "always true"
+         rule guarantees Super Admin sees everything regardless of their
+         incidental OPS Manager membership. -->
+    <data noupdate="0">
+
+        <record id="rule_fp_employee_ops_department" model="ir.rule">
+            <field name="name">OPS: Employee records scoped to assigned department(s)</field>
+            <field name="model_id" ref="model_field_pass_employee"/>
+            <field name="domain_force">['|','|','|','|','|',
+                ('department_id.ops_manager_id','=',user.id),
+                ('department_id.ops_admin1_id','=',user.id),
+                ('department_id.ops_admin2_id','=',user.id),
+                ('department_id.ops_viewer1_id','=',user.id),
+                ('department_id.ops_viewer2_id','=',user.id),
+                ('department_id.ops_viewer3_id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_ops_viewer'))]"/>
+        </record>
+
+        <record id="rule_fp_employee_super_admin_bypass" model="ir.rule">
+            <field name="name">Super Admin: unrestricted Employee access (bypasses OPS department scoping)</field>
+            <field name="model_id" ref="model_field_pass_employee"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_super_admin'))]"/>
+        </record>
+
+        <record id="rule_fp_vehicle_ops_department" model="ir.rule">
+            <field name="name">OPS: Vehicle records scoped to assigned department(s)</field>
+            <field name="model_id" ref="model_field_pass_vehicle"/>
+            <field name="domain_force">['|','|','|','|','|',
+                ('department_id.ops_manager_id','=',user.id),
+                ('department_id.ops_admin1_id','=',user.id),
+                ('department_id.ops_admin2_id','=',user.id),
+                ('department_id.ops_viewer1_id','=',user.id),
+                ('department_id.ops_viewer2_id','=',user.id),
+                ('department_id.ops_viewer3_id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_ops_viewer'))]"/>
+        </record>
+
+        <record id="rule_fp_vehicle_super_admin_bypass" model="ir.rule">
+            <field name="name">Super Admin: unrestricted Vehicle access (bypasses OPS department scoping)</field>
+            <field name="model_id" ref="model_field_pass_vehicle"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_super_admin'))]"/>
+        </record>
+
+        <!-- ══ Same OPS department-scoping, extended to the Renewal and
+             Application event LOGS — confirmed principle: "in all cases,
+             don't show anything unless they have access". These are the
+             models behind the Dashboard's "Recent Activity" lists, and
+             checking via employee_id/vehicle_id's department covers both
+             entity types a single log entry could relate to. ═══════════ -->
+        <record id="rule_fp_renewal_ops_department" model="ir.rule">
+            <field name="name">OPS: Renewal log scoped to assigned department(s)</field>
+            <field name="model_id" ref="model_field_pass_renewal"/>
+            <field name="domain_force">['|','|','|','|','|','|','|','|','|','|','|',
+                ('employee_id.department_id.ops_manager_id','=',user.id),
+                ('employee_id.department_id.ops_admin1_id','=',user.id),
+                ('employee_id.department_id.ops_admin2_id','=',user.id),
+                ('employee_id.department_id.ops_viewer1_id','=',user.id),
+                ('employee_id.department_id.ops_viewer2_id','=',user.id),
+                ('employee_id.department_id.ops_viewer3_id','=',user.id),
+                ('vehicle_id.department_id.ops_manager_id','=',user.id),
+                ('vehicle_id.department_id.ops_admin1_id','=',user.id),
+                ('vehicle_id.department_id.ops_admin2_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer1_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer2_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer3_id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_ops_viewer'))]"/>
+        </record>
+
+        <record id="rule_fp_renewal_super_admin_bypass" model="ir.rule">
+            <field name="name">Super Admin: unrestricted Renewal log access</field>
+            <field name="model_id" ref="model_field_pass_renewal"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_super_admin'))]"/>
+        </record>
+
+        <record id="rule_fp_application_ops_department" model="ir.rule">
+            <field name="name">OPS: Application log scoped to assigned department(s)</field>
+            <field name="model_id" ref="model_field_pass_application"/>
+            <field name="domain_force">['|','|','|','|','|','|','|','|','|','|','|',
+                ('employee_id.department_id.ops_manager_id','=',user.id),
+                ('employee_id.department_id.ops_admin1_id','=',user.id),
+                ('employee_id.department_id.ops_admin2_id','=',user.id),
+                ('employee_id.department_id.ops_viewer1_id','=',user.id),
+                ('employee_id.department_id.ops_viewer2_id','=',user.id),
+                ('employee_id.department_id.ops_viewer3_id','=',user.id),
+                ('vehicle_id.department_id.ops_manager_id','=',user.id),
+                ('vehicle_id.department_id.ops_admin1_id','=',user.id),
+                ('vehicle_id.department_id.ops_admin2_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer1_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer2_id','=',user.id),
+                ('vehicle_id.department_id.ops_viewer3_id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_ops_viewer'))]"/>
+        </record>
+
+        <record id="rule_fp_application_super_admin_bypass" model="ir.rule">
+            <field name="name">Super Admin: unrestricted Application log access</field>
+            <field name="model_id" ref="model_field_pass_application"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('group_fp_super_admin'))]"/>
         </record>
 
     </data>

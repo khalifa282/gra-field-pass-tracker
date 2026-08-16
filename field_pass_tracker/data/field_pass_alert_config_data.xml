@@ -86,5 +86,10 @@
             <field name="warn_days_before">14</field>
             <field name="company_id" ref="base.main_company"/>
         </record>
+        <record id="alert_company_doc" model="field.pass.alert.config">
+            <field name="document_type">company_doc</field>
+            <field name="warn_days_before">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
     </data>
 </odoo>

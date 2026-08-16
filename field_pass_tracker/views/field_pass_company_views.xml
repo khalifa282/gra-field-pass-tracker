@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         Company
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_fp_company_tree" model="ir.ui.view">
+        <field name="name">field.pass.company.tree</field>
+        <field name="model">field.pass.company</field>
+        <field name="arch" type="xml">
+            <tree string="Companies - الشركات">
+                <field name="name"/>
+                <field name="acronym"/>
+                <field name="document_count" string="Documents - المستندات"/>
+                <field name="overall_status" widget="badge"
+                       decoration-success="overall_status == 'valid'"
+                       decoration-warning="overall_status == 'warning'"
+                       decoration-danger="overall_status == 'expired'"
+                       decoration-muted="overall_status == 'na'"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Records-only list: NOT editable, NOT creatable from here (company
+         creation/editing is Administration's job only). Every row's ONLY
+         action is the "Manage Documents" button — there is no form view
+         attached to this action at all, so there's no path to accidentally
+         viewing/editing company details from Records. -->
+    <record id="view_fp_company_records_tree" model="ir.ui.view">
+        <field name="name">field.pass.company.records.tree</field>
+        <field name="model">field.pass.company</field>
+        <field name="arch" type="xml">
+            <tree string="Company Records - سجلات الشركات" create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="acronym"/>
+                <field name="document_count" string="Documents - المستندات"/>
+                <field name="overall_status" widget="badge"
+                       decoration-success="overall_status == 'valid'"
+                       decoration-warning="overall_status == 'warning'"
+                       decoration-danger="overall_status == 'expired'"
+                       decoration-muted="overall_status == 'na'"/>
+                <button name="action_view_documents" type="object"
+                        string="Manage Documents - إدارة المستندات"
+                        class="btn-primary"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_fp_company_records" model="ir.actions.act_window">
+        <field name="name">Company Records - اوراق الشركة الرسمية</field>
+        <field name="res_model">field.pass.company</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_fp_company_records_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No companies yet
+            </p>
+            <p>
+                Companies are created under Administration → Companies. Once
+                one exists, click "Manage Documents" here to start tracking
+                its licenses, registrations, and other compliance documents.
+            </p>
+        </field>
+    </record>
+
+    <!-- Administration-only form: company details, NOTHING else. No path
+         to documents from here at all — that's Records → Company Records'
+         job (see the dedicated list view + action above). -->
+    <record id="view_fp_company_form" model="ir.ui.view">
+        <field name="name">field.pass.company.form</field>
+        <field name="model">field.pass.company</field>
+        <field name="arch" type="xml">
+            <form string="Company - الشركة">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Company Name (English) - اسم الشركة بالإنجليزية"/></h1>
+                        <h2><field name="name_ar" placeholder="اسم الشركة بالعربية - Company Name (Arabic)"/></h2>
+                    </div>
+                    <group>
+                        <group string="Company Details - تفاصيل الشركة">
+                            <field name="acronym"/>
+                            <field name="phone"/>
+                            <field name="fax"/>
+                            <field name="email"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="overall_status" widget="badge"
+                               decoration-success="overall_status == 'valid'"
+                               decoration-warning="overall_status == 'warning'"
+                               decoration-danger="overall_status == 'expired'"
+                               decoration-muted="overall_status == 'na'"/>
+                        <field name="active"/>
+                        <field name="remarks"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fp_company" model="ir.actions.act_window">
+        <field name="name">Companies - الشركات</field>
+        <field name="res_model">field.pass.company</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_fp_company_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Company
+            </p>
+            <p>
+                Once created, go to Records → Company Records to start
+                tracking its licenses, registrations, and other compliance
+                documents.
+            </p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         Company Document — its own dedicated screen, reached only via the
+         "Manage Documents" button in Records → Company Records (never from
+         Administration, which is company-details-only). Prerequisites can
+         ONLY be picked from documents that already exist — creating a new
+         document from inside the prerequisite picker is disabled
+         (no_create/no_create_edit), since that was confusing (it silently
+         opened a full quick-create popup for an unrelated new document).
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_fp_company_document_tree" model="ir.ui.view">
+        <field name="name">field.pass.company.document.tree</field>
+        <field name="model">field.pass.company.document</field>
+        <field name="arch" type="xml">
+            <tree string="Company Documents - مستندات الشركة"
+                  decoration-danger="status=='expired'" decoration-warning="status=='warning'"
+                  decoration-muted="active==False">
+                <field name="name" string="Name (EN) - الاسم"/>
+                <field name="name_ar" string="Name (AR) - بالعربية"/>
+                <field name="related_authority" string="Ministry/Body - الجهة الحكومية"/>
+                <field name="level" string="Level"/>
+                <field name="prerequisite_ids" widget="many2many_tags"/>
+                <field name="validity_date"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'valid'"
+                       decoration-warning="status == 'warning'"
+                       decoration-danger="status == 'expired'"
+                       decoration-muted="status == 'na'"/>
+                <field name="days_remaining" string="Days Left - الأيام المتبقية"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fp_company_document_form" model="ir.ui.view">
+        <field name="name">field.pass.company.document.form</field>
+        <field name="model">field.pass.company.document</field>
+        <field name="arch" type="xml">
+            <form string="Company Document - مستند الشركة">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Document Name (English) - اسم المستند بالإنجليزية"/></h1>
+                        <h2><field name="name_ar" placeholder="اسم المستند بالعربية - Document Name (Arabic)"/></h2>
+                    </div>
+                    <group>
+                        <field name="company_id" readonly="1"/>
+                        <field name="related_authority"/>
+                        <field name="level" readonly="1"/>
+                    </group>
+                    <group string="Validity - الصلاحية">
+                        <field name="validity_date"/>
+                        <field name="attachment" widget="binary" filename="attachment_name"/>
+                        <field name="attachment_name" invisible="1"/>
+                        <field name="status" widget="badge"
+                               decoration-success="status == 'valid'"
+                               decoration-warning="status == 'warning'"
+                               decoration-danger="status == 'expired'"
+                               decoration-muted="status == 'na'"/>
+                        <field name="days_remaining"/>
+                        <field name="active"/>
+                    </group>
+                    <group col="1">
+                        <field name="prerequisite_ids" can_create="false"
+                               options="{'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"
+                               context="{'default_company_id': company_id}"
+                               domain="[('company_id', '=', company_id), ('id', '!=', id)]">
+                            <tree decoration-danger="status=='expired'" decoration-warning="status=='warning'">
+                                <field name="name" string="Name (EN) - الاسم"/>
+                                <field name="name_ar" string="Name (AR) - بالعربية"/>
+                                <field name="related_authority" string="Ministry/Body - الجهة الحكومية"/>
+                                <field name="validity_date"/>
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'valid'"
+                                       decoration-warning="status == 'warning'"
+                                       decoration-danger="status == 'expired'"
+                                       decoration-muted="status == 'na'"/>
+                                <field name="level"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Required By - مطلوب من قبل" attrs="{'invisible': [('dependent_ids','=',[])]}">
+                        <field name="dependent_ids" nolabel="1" colspan="2" widget="many2many_tags" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

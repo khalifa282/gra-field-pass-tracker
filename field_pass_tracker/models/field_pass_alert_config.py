@@ -31,6 +31,7 @@ class FieldPassAlertConfig(models.Model):
             ('fp_wafra', 'Wafra Field Pass'),
             ('fp_fawares', 'Fawares Field Pass'),
             ('fp_temp', 'Temp Field Pass'),
+            ('company_doc', 'Company Document (single threshold, all types)'),
         ],
         string='Document Type', required=True,
     )

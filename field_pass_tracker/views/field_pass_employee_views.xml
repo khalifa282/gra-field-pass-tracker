@@ -115,8 +115,8 @@
                                     <field name="sv_wafra_pass" string="Wafra Pass" readonly="1" widget="badge" decoration-success="sv_wafra_pass == 'valid'" decoration-warning="sv_wafra_pass == 'warning'" decoration-danger="sv_wafra_pass in ('expired','missing')"/>
                                     <field name="sv_fawares_pass" string="Fawares Pass" readonly="1" widget="badge" decoration-success="sv_fawares_pass == 'valid'" decoration-warning="sv_fawares_pass == 'warning'" decoration-danger="sv_fawares_pass in ('expired','missing')"/>
                                     <field name="sv_temp_pass" string="Temp Pass" readonly="1" widget="badge" decoration-success="sv_temp_pass == 'valid'" decoration-warning="sv_temp_pass == 'warning'" decoration-danger="sv_temp_pass in ('expired','missing')"/>
-                                    <field name="sv_ptw" string="PTW" readonly="1" widget="badge" decoration-success="sv_ptw == 'valid'" decoration-warning="sv_ptw == 'warning'" decoration-danger="sv_ptw in ('expired','missing')"/>
-                                    <field name="sv_koc_laptop" string="KOC Laptop Pass" readonly="1" widget="badge" decoration-success="sv_koc_laptop == 'valid'" decoration-warning="sv_koc_laptop == 'warning'" decoration-danger="sv_koc_laptop in ('expired','missing')"/>
+                                    <field name="sv_ptw_pass" string="PTW" readonly="1" widget="badge" decoration-success="sv_ptw_pass == 'valid'" decoration-warning="sv_ptw_pass == 'warning'" decoration-danger="sv_ptw_pass in ('expired','missing')"/>
+                                    <field name="sv_koc_laptop_pass" string="KOC Laptop Pass" readonly="1" widget="badge" decoration-success="sv_koc_laptop_pass == 'valid'" decoration-warning="sv_koc_laptop_pass == 'warning'" decoration-danger="sv_koc_laptop_pass in ('expired','missing')"/>
                                 </group>
                                 <group string="Application Status - حالة المعاملة">
                                     <field name="sa_koc_pass" string="KOC Field Pass" readonly="1" widget="badge" decoration-info="sa_koc_pass == 'submitted'" decoration-danger="sa_koc_pass == 'rejected'" decoration-success="sa_koc_pass == 'issued'" attrs="{'invisible': [('sa_koc_pass','=','none')]}"/>
@@ -124,12 +124,12 @@
                                     <field name="sa_wafra_pass" string="Wafra Pass" readonly="1" widget="badge" decoration-info="sa_wafra_pass == 'submitted'" decoration-danger="sa_wafra_pass == 'rejected'" decoration-success="sa_wafra_pass == 'issued'" attrs="{'invisible': [('sa_wafra_pass','=','none')]}"/>
                                     <field name="sa_fawares_pass" string="Fawares Pass" readonly="1" widget="badge" decoration-info="sa_fawares_pass == 'submitted'" decoration-danger="sa_fawares_pass == 'rejected'" decoration-success="sa_fawares_pass == 'issued'" attrs="{'invisible': [('sa_fawares_pass','=','none')]}"/>
                                     <field name="sa_temp_pass" string="Temp Pass" readonly="1" widget="badge" decoration-info="sa_temp_pass == 'submitted'" decoration-danger="sa_temp_pass == 'rejected'" decoration-success="sa_temp_pass == 'issued'" attrs="{'invisible': [('sa_temp_pass','=','none')]}"/>
-                                    <field name="sa_ptw" string="PTW" readonly="1" widget="badge" decoration-info="sa_ptw == 'submitted'" decoration-danger="sa_ptw == 'rejected'" decoration-success="sa_ptw == 'issued'" attrs="{'invisible': [('sa_ptw','=','none')]}"/>
-                                    <field name="sa_koc_laptop" string="KOC Laptop Pass" readonly="1" widget="badge" decoration-info="sa_koc_laptop == 'submitted'" decoration-danger="sa_koc_laptop == 'rejected'" decoration-success="sa_koc_laptop == 'issued'" attrs="{'invisible': [('sa_koc_laptop','=','none')]}"/>
+                                    <field name="sa_ptw_pass" string="PTW" readonly="1" widget="badge" decoration-info="sa_ptw_pass == 'submitted'" decoration-danger="sa_ptw_pass == 'rejected'" decoration-success="sa_ptw_pass == 'issued'" attrs="{'invisible': [('sa_ptw_pass','=','none')]}"/>
+                                    <field name="sa_koc_laptop_pass" string="KOC Laptop Pass" readonly="1" widget="badge" decoration-info="sa_koc_laptop_pass == 'submitted'" decoration-danger="sa_koc_laptop_pass == 'rejected'" decoration-success="sa_koc_laptop_pass == 'issued'" attrs="{'invisible': [('sa_koc_laptop_pass','=','none')]}"/>
                                 </group>
                             </group>
                         </page>
-                        <page name="documents" string="Documents - المستندات">
+                        <page name="documents" string="Documents - المستندات" groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin,field_pass_tracker.group_fp_hr_viewer">
 
                             <separator string="Government Documents - الوثائق الحكومية"/>
                             <group>
@@ -215,6 +215,7 @@
                                 </group>
                                 <group string="Driving HSE Training">
                                     <field name="driving_hse_training_date" readonly="1" string="Driving HSE Training Date - تاريخ تدريب السلامة للسائق"/>
+                                    <field name="driving_hse_expiry_date" string="Driving HSE Expiry (optional) - تاريخ انتهاء التدريب (اختياري)"/>
                                     <field name="driving_hse_status" widget="badge"
                                            decoration-success="driving_hse_status == 'valid'"
                                            decoration-warning="driving_hse_status == 'warning'"
@@ -227,55 +228,17 @@
                                 </group>
                             </group>
 
-                            <separator string="Person Specific - خاص بالموظف"
-                                       attrs="{'invisible': [('job_type','=','Driver')]}"/>
-                            <group attrs="{'invisible': [('job_type','=','Driver')]}">
-                                <group string="PTW">
-                                    <field name="track_ptw" string="Track PTW - تتبع إذن فتح الآبار"/>
-                                    <field name="ptw_expiry_date" readonly="1" string="PTW Expiry Date - تاريخ انتهاء إذن فتح الآبار"
-                                           attrs="{'invisible': [('track_ptw','=',False)]}"/>
-                                    <field name="ptw_status" widget="badge"
-                                           decoration-success="ptw_status == 'valid'"
-                                           decoration-warning="ptw_status == 'warning'"
-                                           decoration-danger="ptw_status == 'expired'"
-                                           decoration-muted="ptw_status == 'na'"
-                                           attrs="{'invisible': [('track_ptw','=',False)]}"/>
-                                    <field name="ptw_days" string="Days Remaining - الأيام المتبقية"
-                                           attrs="{'invisible': [('ptw_status','=','na')]}"/>
-                                    <field name="attachment_ptw" widget="binary" readonly="1"
-                                           filename="attachment_ptw_name"
-                                           string="Document Copy - نسخة المستند"
-                                           attrs="{'invisible': [('track_ptw','=',False)]}"/>
-                                    <field name="attachment_ptw_name" invisible="1"/>
-                                </group>
-                                <group string="KOC Laptop Pass">
-                                    <field name="track_koc_laptop" string="Track KOC Laptop Pass - تتبع تصريح اللابتوب KOC"/>
-                                    <field name="koc_laptop_pass_number" readonly="1" string="KOC Laptop Pass Number - رقم تصريح اللابتوب KOC"
-                                           attrs="{'invisible': [('track_koc_laptop','=',False)]}"/>
-                                    <field name="koc_laptop_expiry_date" readonly="1" string="KOC Laptop Expiry Date - تاريخ انتهاء تصريح اللابتوب"
-                                           attrs="{'invisible': [('track_koc_laptop','=',False)]}"/>
-                                    <field name="koc_laptop_status" widget="badge"
-                                           decoration-success="koc_laptop_status == 'valid'"
-                                           decoration-warning="koc_laptop_status == 'warning'"
-                                           decoration-danger="koc_laptop_status == 'expired'"
-                                           decoration-muted="koc_laptop_status == 'na'"
-                                           attrs="{'invisible': [('track_koc_laptop','=',False)]}"/>
-                                    <field name="koc_laptop_days" string="Days Remaining - الأيام المتبقية"
-                                           attrs="{'invisible': [('koc_laptop_status','=','na')]}"/>
-                                    <field name="attachment_koc_laptop" widget="binary" readonly="1"
-                                           filename="attachment_koc_laptop_name"
-                                           string="Document Copy - نسخة المستند"
-                                           attrs="{'invisible': [('track_koc_laptop','=',False)]}"/>
-                                    <field name="attachment_koc_laptop_name" invisible="1"/>
-                                </group>
-                            </group>
+                            <!-- NOTE: "Person Specific" (PTW / KOC Laptop Pass) section removed
+                                 here — these are now real Field Passes, managed via the Pass
+                                 Renewals wizard and shown in the Field Passes tab / Summary tab
+                                 above, not as Employee document fields. -->
 
                             <group string="Remarks - ملاحظات">
                                 <field name="remarks" nolabel="1" string="Remarks - ملاحظات" placeholder="Notes..."/>
                             </group>
                         </page>
 
-                        <page name="field_passes" string="Field Passes - تصاريح الحقول">
+                        <page name="field_passes" string="Field Passes - تصاريح الحقول" groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin">
                             <group string="Pass Status - حالة التصريح">
                                 <group>
                                     <field name="pass_koc_status" string="KOC Field Pass" widget="badge"
@@ -420,7 +383,7 @@
     </record>
 
     <record id="action_fp_employee" model="ir.actions.act_window">
-        <field name="name">Employees</field>
+        <field name="name">Employees - الموظفين</field>
         <field name="res_model">field.pass.employee</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{'search_default_by_dept': 1}</field>
@@ -518,16 +481,8 @@
                        decoration-warning="driving_authority_status == 'warning'"
                        decoration-danger="driving_authority_status == 'expired'"
                        decoration-muted="driving_authority_status == 'na'"/>
-                <field name="ptw_status" string="PTW" widget="badge"
-                       decoration-success="ptw_status == 'valid'"
-                       decoration-warning="ptw_status == 'warning'"
-                       decoration-danger="ptw_status == 'expired'"
-                       decoration-muted="ptw_status == 'na'"/>
-                <field name="koc_laptop_status" string="KOC Laptop" widget="badge"
-                       decoration-success="koc_laptop_status == 'valid'"
-                       decoration-warning="koc_laptop_status == 'warning'"
-                       decoration-danger="koc_laptop_status == 'expired'"
-                       decoration-muted="koc_laptop_status == 'na'"/>
+                <!-- PTW / KOC Laptop columns removed here — now tracked as
+                     Field Passes (Pass Renewals), not Employee document fields. -->
             </tree>
         </field>
     </record>

@@ -8,6 +8,11 @@ PASS_TYPES = [
     ('WAFRA', 'Wafra Pass - تصريح الوفرة'),
     ('FAWARES', 'Fawares Pass - تصريح الفوارس'),
     ('TEMP', 'Temp Field Pass - تصريح مؤقت'),
+    # MOVED from Document Renewal — same as field_pass.py and
+    # field_pass_renewal_wizard.py's copies of this list (see note there
+    # about this being duplicated 3x with no single source of truth).
+    ('PTW', 'PTW - إذن فتح الآبار'),
+    ('KOC_LAPTOP', 'KOC Laptop Pass - تصريح اللابتوب KOC'),
 ]
 
 

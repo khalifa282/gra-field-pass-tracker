@@ -55,17 +55,17 @@
                                     string="Submit Renewal Request - تقديم طلب التجديد"
                                     class="btn btn-primary"
                                     attrs="{'invisible': [('has_open_submission','=',True)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                             <button name="action_open_issue_wizard" type="object"
                                     string="Mark as Issued - إصدار"
                                     class="btn btn-success"
                                     attrs="{'invisible': [('has_open_submission','=',False)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                             <button name="action_open_reject_wizard" type="object"
                                     string="Mark as Rejected - رفض"
                                     class="btn btn-danger"
                                     attrs="{'invisible': [('has_open_submission','=',False)]}"
-                                    groups="field_pass_tracker.group_fp_admin"/>
+                                    groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin"/>
                         </div>
 
                     </div>
@@ -131,10 +131,10 @@
 record = env['field.pass.renewal.wizard'].create({})
 action = {
     'type': 'ir.actions.act_window',
-    'name': 'Document Renewal',
+    'name': 'Document Renewal - تجديد المستندات',
     'res_model': 'field.pass.renewal.wizard',
     'view_mode': 'form',
-    'target': 'inline',
+    'target': 'current',
     'res_id': record.id,
 }
         </field>

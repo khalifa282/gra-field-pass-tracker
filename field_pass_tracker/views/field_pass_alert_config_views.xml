@@ -25,7 +25,7 @@
         </field>
     </record>
     <record id="action_fp_alert_config" model="ir.actions.act_window">
-        <field name="name">Alert Settings</field>
+        <field name="name">Alert Settings - إعدادات التنبيهات</field>
         <field name="res_model">field.pass.alert.config</field>
         <field name="view_mode">tree,form</field>
     </record>

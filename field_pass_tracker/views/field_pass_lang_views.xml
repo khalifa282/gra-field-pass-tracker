@@ -40,7 +40,7 @@ action = {
     'name': 'Language Settings',
     'res_model': 'field.pass.language',
     'view_mode': 'form',
-    'target': 'inline',
+    'target': 'current',
     'res_id': record.id,
 }
         </field>

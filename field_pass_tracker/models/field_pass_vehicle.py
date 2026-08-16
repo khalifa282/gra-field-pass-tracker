@@ -133,7 +133,7 @@ class FieldPassVehicle(models.Model):
         return 'valid'
 
     def _get_renewal_status_v(self, doc_type):
-        latest = self.env['field.pass.renewal'].search([
+        latest = self.env['field.pass.renewal'].sudo().search([
             ('vehicle_id', '=', self.id),
             ('document_type', '=', doc_type),
         ], order='event_date desc', limit=1)
@@ -143,7 +143,7 @@ class FieldPassVehicle(models.Model):
 
     def _get_pass_validity_v(self, pass_type):
         from datetime import date as dt
-        rec = self.env['field.pass'].search([
+        rec = self.env['field.pass'].sudo().search([
             ('vehicle_id', '=', self.id),
             ('pass_type', '=', pass_type),
             ('is_temp', '=', False),
@@ -158,7 +158,7 @@ class FieldPassVehicle(models.Model):
         return 'valid'
 
     def _get_app_status_v(self, pass_type):
-        latest = self.env['field.pass.application'].search([
+        latest = self.env['field.pass.application'].sudo().search([
             ('vehicle_id', '=', self.id),
             ('pass_type', '=', pass_type),
         ], order='event_date desc', limit=1)
@@ -225,8 +225,8 @@ class FieldPassVehicle(models.Model):
     def _calc_pass_status(self, pass_type, required, warn_days):
         if not required:
             return 'not_required'
-        main = self.pass_ids.filtered(lambda p: p.pass_type == pass_type and not p.is_temp)
-        temp = self.pass_ids.filtered(lambda p: p.pass_type == 'TEMP' and p.is_temp)
+        main = self.sudo().pass_ids.filtered(lambda p: p.pass_type == pass_type and not p.is_temp)
+        temp = self.sudo().pass_ids.filtered(lambda p: p.pass_type == 'TEMP' and p.is_temp)
         if not main:
             if temp and temp[0].date_expire:
                 delta = (temp[0].date_expire - date.today()).days
@@ -308,7 +308,7 @@ class FieldPassVehicle(models.Model):
 
     def _compute_pass_count(self):
         for v in self:
-            v.pass_count = len(v.pass_ids)
+            v.pass_count = len(v.sudo().pass_ids)
 
     def action_view_passes(self):
         self.ensure_one()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+from .field_pass_notifications import send_fp_notification
 
 PASS_TYPES = [
     ('KOC', 'KOC Field Pass - تصاريح الكي او سي'),
@@ -8,6 +9,9 @@ PASS_TYPES = [
     ('WAFRA', 'Wafra Pass - تصريح الوفرة'),
     ('FAWARES', 'Fawares Pass - تصريح الفوارس'),
     ('TEMP', 'Temp Field Pass - تصريح مؤقت'),
+    # MOVED from Document Renewal — Arabic wording best-effort, please review.
+    ('PTW', 'PTW - إذن فتح الآبار'),
+    ('KOC_LAPTOP', 'KOC Laptop Pass - تصريح اللابتوب KOC'),
 ]
 
 
@@ -44,6 +48,8 @@ class FieldPassApplicationWizard(models.TransientModel):
                                   string='Pass Type - نوع التصريح')
 
     # Step 4 - Employee documents (related, no store needed)
+    doc_cv_approval = fields.Binary(related='employee_id.attachment_cv_approval', readonly=True)
+    doc_cv_approval_name = fields.Char(related='employee_id.attachment_cv_approval_name', readonly=True)
     doc_passport = fields.Binary(related='employee_id.attachment_passport', readonly=True)
     doc_passport_name = fields.Char(related='employee_id.attachment_passport_name', readonly=True)
     doc_residency = fields.Binary(related='employee_id.attachment_residency', readonly=True)
@@ -52,10 +58,16 @@ class FieldPassApplicationWizard(models.TransientModel):
     doc_civil_id_name = fields.Char(related='employee_id.attachment_civil_id_name', readonly=True)
     doc_driving_license = fields.Binary(related='employee_id.attachment_driving_license', readonly=True)
     doc_driving_license_name = fields.Char(related='employee_id.attachment_driving_license_name', readonly=True)
-    doc_ptw = fields.Binary(related='employee_id.attachment_ptw', readonly=True)
-    doc_ptw_name = fields.Char(related='employee_id.attachment_ptw_name', readonly=True)
-    doc_koc_laptop = fields.Binary(related='employee_id.attachment_koc_laptop', readonly=True)
-    doc_koc_laptop_name = fields.Char(related='employee_id.attachment_koc_laptop_name', readonly=True)
+    doc_driving_authority = fields.Binary(related='employee_id.attachment_driving_authority', readonly=True)
+    doc_driving_authority_name = fields.Char(related='employee_id.attachment_driving_authority_name', readonly=True)
+    doc_wjo_hse = fields.Binary(related='employee_id.attachment_wjo_hse', readonly=True)
+    doc_wjo_hse_name = fields.Char(related='employee_id.attachment_wjo_hse_name', readonly=True)
+    doc_driving_hse = fields.Binary(related='employee_id.attachment_driving_hse', readonly=True)
+    doc_driving_hse_name = fields.Char(related='employee_id.attachment_driving_hse_name', readonly=True)
+    # NOTE: doc_ptw / doc_koc_laptop removed — attachment_ptw/
+    # attachment_koc_laptop no longer exist on Employee (PTW/KOC Laptop
+    # Pass moved to real Pass records; their attachment now lives on the
+    # field.pass record itself, via the standard attachment_pass field).
 
     # Step 4 - Vehicle documents
     doc_registration = fields.Binary(related='vehicle_id.attachment_registration', readonly=True)
@@ -106,24 +118,15 @@ class FieldPassApplicationWizard(models.TransientModel):
             return [('vehicle_id', '=', self.vehicle_id.id)]
         return []
 
-    def _new_wizard(self):
-        new = self.env['field.pass.application.wizard'].create({
-            'entity_type': self.entity_type,
-            'pass_type': self.pass_type,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Pass Applications - معاملات التصاريح',
-            'res_model': 'field.pass.application.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+    # NOTE: _new_wizard() was removed here — see field_pass_renewal.py's
+    # matching comment for the full explanation of why returning an
+    # act_window action (even pointing at the same res_id) still stacked a
+    # breadcrumb entry. action_submit_application now just calls
+    # _compute_status() and returns True directly instead.
 
     def action_submit_application(self):
         self.ensure_one()
+        from datetime import date
         if not self.pass_type:
             raise ValidationError('Please select a pass type.')
         domain = self._get_entity_domain()
@@ -145,6 +148,68 @@ class FieldPassApplicationWizard(models.TransientModel):
                     f'WJO HSE Training must be attended first.'
                 )
 
+        # Prerequisite: field-pass gating (documents-ready), matching the
+        # same rules now enforced on field.pass itself -- duplicated here
+        # so Submit is gated the same way Issue already is.
+        _OK = ('valid', 'warning')
+        if self.entity_type == 'employee' and self.employee_id:
+            emp = self.employee_id
+            if self.pass_type in ('KOC', 'WAFRA', 'FAWARES'):
+                if emp.civil_id_status not in _OK:
+                    raise ValidationError(
+                        f'Cannot submit {self.pass_type} pass application for {emp.name}: '
+                        f'Civil ID must be valid first.'
+                    )
+            if self.pass_type == 'RATQA_ABDALLY':
+                koc = emp.pass_ids.filtered(
+                    lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
+                if not koc or not any(p.date_expire >= date.today() for p in koc):
+                    raise ValidationError(
+                        f'Cannot submit RATQA & Abdally GP application for {emp.name}: '
+                        f'a valid KOC Field Pass is required first.'
+                    )
+            if self.pass_type in ('PTW', 'KOC_LAPTOP'):
+                # MOVED from Document Renewal (Employee-level check) —
+                # same rule, now applied here since PTW/KOC Laptop Pass are
+                # real Pass records instead of Employee document fields.
+                koc = emp.pass_ids.filtered(
+                    lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
+                if not koc or not any(p.date_expire >= date.today() for p in koc):
+                    raise ValidationError(
+                        f'Cannot submit {dict(PASS_TYPES).get(self.pass_type)} application for {emp.name}: '
+                        f'a valid KOC Field Pass is required first.'
+                    )
+
+        if self.entity_type == 'vehicle' and self.vehicle_id:
+            veh = self.vehicle_id
+            if self.pass_type == 'KOC':
+                missing = []
+                if veh.clearance_certificate_status not in _OK:
+                    missing.append('Clearance Certificate')
+                if veh.registration_status not in _OK:
+                    missing.append('Registration')
+                if veh.third_party_inspection_status not in _OK:
+                    missing.append('3rd Party Inspection')
+                if missing:
+                    raise ValidationError(
+                        f'Cannot submit KOC Field Pass application for {veh.plate_number}: '
+                        f'the following must be valid first: {", ".join(missing)}.'
+                    )
+            if self.pass_type == 'RATQA_ABDALLY':
+                koc = veh.pass_ids.filtered(
+                    lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
+                if not koc or not any(p.date_expire >= date.today() for p in koc):
+                    raise ValidationError(
+                        f'Cannot submit RATQA & Abdally GP application for {veh.plate_number}: '
+                        f'a valid KOC Field Pass is required first.'
+                    )
+            if self.pass_type in ('WAFRA', 'FAWARES'):
+                if veh.registration_status not in _OK:
+                    raise ValidationError(
+                        f'Cannot submit {self.pass_type} application for {veh.plate_number}: '
+                        f'Registration must be valid first.'
+                    )
+
         vals = {
             'pass_type': self.pass_type,
             'event_by': self.env.user.id,
@@ -155,7 +220,20 @@ class FieldPassApplicationWizard(models.TransientModel):
         else:
             vals['vehicle_id'] = self.vehicle_id.id
         self.env['field.pass.application'].create(vals)
-        return self._new_wizard()
+
+        entity = self.employee_id if self.entity_type == 'employee' else self.vehicle_id
+        pass_label = dict(PASS_TYPES).get(self.pass_type, self.pass_type)
+        send_fp_notification(
+            self.env, entity, pass_label.split(' - ')[0], 'submitted',
+            event_by_name=self.env.user.name,
+        )
+
+        # Same fix as field_pass_renewal.py's action_submit_renewal — see
+        # that comment for the full explanation. Return True (stay on this
+        # screen, no navigation, no breadcrumb push) instead of a new
+        # act_window action.
+        self._compute_status()
+        return True
 
     def action_open_reject_wizard(self):
         self.ensure_one()
@@ -178,6 +256,7 @@ class FieldPassApplicationWizard(models.TransientModel):
                 'default_pass_type': self.pass_type,
                 'default_employee_id': self.employee_id.id if self.employee_id else False,
                 'default_vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
+                'default_parent_wizard_id': self.id,
             },
         }
 
@@ -201,6 +280,7 @@ class FieldPassApplicationWizard(models.TransientModel):
                 'default_pass_type': self.pass_type,
                 'default_employee_id': self.employee_id.id if self.employee_id else False,
                 'default_vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
+                'default_parent_wizard_id': self.id,
             },
         }
 
@@ -213,6 +293,7 @@ class FieldPassApplicationRejectWizard(models.TransientModel):
     pass_type = fields.Char()
     employee_id = fields.Many2one('field.pass.employee')
     vehicle_id = fields.Many2one('field.pass.vehicle')
+    parent_wizard_id = fields.Many2one('field.pass.application.wizard')
     rejection_reason = fields.Text(
         string='Rejection Reason - سبب الرفض', required=True)
 
@@ -228,21 +309,18 @@ class FieldPassApplicationRejectWizard(models.TransientModel):
         else:
             vals['vehicle_id'] = self.vehicle_id.id
         self.env['field.pass.application'].create(vals)
-        new = self.env['field.pass.application.wizard'].create({
-            'entity_type': self.entity_type or False,
-            'pass_type': self.pass_type or False,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        new._compute_status()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Pass Applications',
-            'res_model': 'field.pass.application.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+
+        entity = self.employee_id or self.vehicle_id
+        pass_label = dict(PASS_TYPES).get(self.pass_type, self.pass_type)
+        send_fp_notification(
+            self.env, entity, pass_label.split(' - ')[0], 'rejected',
+            event_by_name=self.env.user.name,
+            extra_note=f'Reason: {self.rejection_reason}',
+        )
+
+        if self.parent_wizard_id:
+            self.parent_wizard_id._compute_status()
+        return {'type': 'ir.actions.act_window_close'}
 
 
 class FieldPassApplicationIssueWizard(models.TransientModel):
@@ -253,6 +331,7 @@ class FieldPassApplicationIssueWizard(models.TransientModel):
     pass_type = fields.Char()
     employee_id = fields.Many2one('field.pass.employee')
     vehicle_id = fields.Many2one('field.pass.vehicle')
+    parent_wizard_id = fields.Many2one('field.pass.application.wizard')
     expiry_date = fields.Date(
         string='New Expiry Date - تاريخ الانتهاء الجديد', required=True)
     attachment_pass = fields.Binary(
@@ -274,17 +353,15 @@ class FieldPassApplicationIssueWizard(models.TransientModel):
             vals['vehicle_id'] = self.vehicle_id.id
         app = self.env['field.pass.application'].create(vals)
         app.action_update_pass_record()
-        new = self.env['field.pass.application.wizard'].create({
-            'entity_type': self.entity_type or False,
-            'pass_type': self.pass_type or False,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Pass Applications',
-            'res_model': 'field.pass.application.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+
+        entity = self.employee_id or self.vehicle_id
+        pass_label = dict(PASS_TYPES).get(self.pass_type, self.pass_type)
+        send_fp_notification(
+            self.env, entity, pass_label.split(' - ')[0], 'issued',
+            event_by_name=self.env.user.name,
+            extra_note=f'New expiry date: {self.expiry_date}',
+        )
+
+        if self.parent_wizard_id:
+            self.parent_wizard_id._compute_status()
+        return {'type': 'ir.actions.act_window_close'}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_users_form_fp_ops_dept" model="ir.ui.view">
+        <field name="name">res.users.form.fp.ops.department</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="inside">
+                <group string="OPS Departments - أقسام العمليات (GRA)">
+                    <field name="fp_ops_department_ids" widget="many2many_tags"
+                           options="{'no_create': True, 'no_create_edit': True}"/>
+                    <p class="text-muted" colspan="2">
+                        Only relevant for OPS-tier access — which department(s) this user
+                        can see/act on. Ignored entirely for GRO/HR-tier access.
+                    </p>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

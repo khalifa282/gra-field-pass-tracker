@@ -125,7 +125,15 @@ class FieldPassEmployee(models.Model):
     attachment_driving_authority = fields.Binary(string='Driving Authority Document', attachment=True)
     attachment_driving_authority_name = fields.Char()
 
-    driving_hse_training_date = fields.Date(string='Driving HSE Training Date', tracking=True)
+    driving_hse_training_date = fields.Date(
+        string='Driving HSE Training Date', tracking=True,
+        help="Date training was completed. Once set, status is 'Valid' unless an expiry date below is also set.",
+    )
+    driving_hse_expiry_date = fields.Date(
+        string='Driving HSE Training Expiry (optional)', tracking=True,
+        help="Optional. If set, training will show as expiring/expired based on this date. "
+             "If left blank, training is valid indefinitely once completed.",
+    )
     driving_hse_status = fields.Selection(
         [('valid','Valid'),('warning','Warning'),('expired','Expired'),('na','Not Required')],
         compute='_compute_statuses', store=True,
@@ -133,27 +141,9 @@ class FieldPassEmployee(models.Model):
     attachment_driving_hse = fields.Binary(string='Driving HSE Certificate', attachment=True)
     attachment_driving_hse_name = fields.Char()
 
-    # ── PERSON SPECIFIC ───────────────────────────────────────────────────────
-    track_ptw = fields.Boolean(string='Track PTW', default=False, tracking=True)
-    ptw_expiry_date = fields.Date(string='PTW Expiry Date', tracking=True)
-    ptw_status = fields.Selection(
-        [('valid','Valid'),('warning','Warning'),('expired','Expired'),('na','Not Required')],
-        compute='_compute_statuses', store=True,
-    )
-    ptw_days = fields.Integer(compute='_compute_statuses', store=True)
-    attachment_ptw = fields.Binary(string='PTW Document', attachment=True)
-    attachment_ptw_name = fields.Char()
-
-    track_koc_laptop = fields.Boolean(string='Track KOC Laptop Pass', default=False, tracking=True)
-    koc_laptop_pass_number = fields.Char(string='KOC Laptop Pass Number', tracking=True)
-    koc_laptop_expiry_date = fields.Date(string='KOC Laptop Expiry Date', tracking=True)
-    koc_laptop_status = fields.Selection(
-        [('valid','Valid'),('warning','Warning'),('expired','Expired'),('na','Not Required')],
-        compute='_compute_statuses', store=True,
-    )
-    koc_laptop_days = fields.Integer(compute='_compute_statuses', store=True)
-    attachment_koc_laptop = fields.Binary(string='KOC Laptop Document', attachment=True)
-    attachment_koc_laptop_name = fields.Char()
+    # NOTE: PTW and KOC Laptop Pass moved to Pass Application/Renewal
+    # (field.pass model, pass_type='PTW'/'KOC_LAPTOP') -- confirmed change,
+    # no longer tracked as Employee document fields. See field_pass.py.
 
     # ── Overall document status ────────────────────────────────────────────────
     overall_doc_status = fields.Selection(
@@ -218,7 +208,7 @@ class FieldPassEmployee(models.Model):
         return 'valid'
 
     def _get_renewal_status(self, doc_type):
-        latest = self.env['field.pass.renewal'].search([
+        latest = self.env['field.pass.renewal'].sudo().search([
             ('employee_id', '=', self.id),
             ('document_type', '=', doc_type),
         ], order='event_date desc', limit=1)
@@ -228,7 +218,7 @@ class FieldPassEmployee(models.Model):
 
     def _get_pass_validity(self, pass_type):
         from datetime import date as dt
-        rec = self.env['field.pass'].search([
+        rec = self.env['field.pass'].sudo().search([
             ('employee_id', '=', self.id),
             ('pass_type', '=', pass_type),
             ('is_temp', '=', False),
@@ -243,7 +233,7 @@ class FieldPassEmployee(models.Model):
         return 'valid'
 
     def _get_app_status(self, pass_type):
-        latest = self.env['field.pass.application'].search([
+        latest = self.env['field.pass.application'].sudo().search([
             ('employee_id', '=', self.id),
             ('pass_type', '=', pass_type),
         ], order='event_date desc', limit=1)
@@ -252,7 +242,7 @@ class FieldPassEmployee(models.Model):
         return latest.state
 
     @api.depends('passport_validity', 'residency_validity', 'civil_id_validity',
-                 'driving_license_validity', 'ptw_expiry_date', 'koc_laptop_expiry_date',
+                 'driving_license_validity',
                  'driving_hse_training_date', 'driving_authority_validity',
                  'renewal_history_ids', 'pass_app_history_ids')
     def _compute_summary_v2(self):
@@ -263,26 +253,28 @@ class FieldPassEmployee(models.Model):
             r.sv_driving_license = r._get_validity_status('driving_license_validity')
             r.sv_driving_hse = r._get_validity_status('driving_hse_training_date')
             r.sv_driving_authority = r._get_validity_status('driving_authority_validity')
-            r.sv_ptw = r._get_validity_status('ptw_expiry_date')
-            r.sv_koc_laptop = r._get_validity_status('koc_laptop_expiry_date')
             r.sa_passport = r._get_renewal_status('passport')
             r.sa_residency = r._get_renewal_status('residency')
             r.sa_civil_id = r._get_renewal_status('civil_id')
             r.sa_driving_license = r._get_renewal_status('driving_license')
             r.sa_driving_hse = r._get_renewal_status('driving_hse')
             r.sa_driving_authority = r._get_renewal_status('driving_authority')
-            r.sa_ptw = r._get_renewal_status('ptw')
-            r.sa_koc_laptop = r._get_renewal_status('koc_laptop')
             r.sv_koc_pass = r._get_pass_validity('KOC')
             r.sv_ratqa_pass = r._get_pass_validity('RATQA_ABDALLY')
             r.sv_wafra_pass = r._get_pass_validity('WAFRA')
             r.sv_fawares_pass = r._get_pass_validity('FAWARES')
             r.sv_temp_pass = r._get_pass_validity('TEMP')
+            # MOVED: PTW and KOC Laptop Pass are now Pass Application/Renewal
+            # types (like KOC/RATQA/WAFRA), not Document Renewal fields.
+            r.sv_ptw_pass = r._get_pass_validity('PTW')
+            r.sv_koc_laptop_pass = r._get_pass_validity('KOC_LAPTOP')
             r.sa_koc_pass = r._get_app_status('KOC')
             r.sa_ratqa_pass = r._get_app_status('RATQA_ABDALLY')
             r.sa_wafra_pass = r._get_app_status('WAFRA')
             r.sa_fawares_pass = r._get_app_status('FAWARES')
             r.sa_temp_pass = r._get_app_status('TEMP')
+            r.sa_ptw_pass = r._get_app_status('PTW')
+            r.sa_koc_laptop_pass = r._get_app_status('KOC_LAPTOP')
 
     _VALIDITY = [('valid','Valid - صالح'),('warning','Expiring Soon - ينتهي قريباً'),
                  ('expired','Expired - منتهي'),('missing','No Expiry Date - لا يوجد تاريخ')]
@@ -295,26 +287,26 @@ class FieldPassEmployee(models.Model):
     sv_driving_license = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_driving_hse = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_driving_authority = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
-    sv_ptw = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
-    sv_koc_laptop = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_koc_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_ratqa_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_wafra_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_fawares_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sv_temp_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
+    sv_ptw_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
+    sv_koc_laptop_pass = fields.Selection(_VALIDITY, compute='_compute_summary_v2', string='Validity')
     sa_passport = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_residency = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_civil_id = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_driving_license = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_driving_hse = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_driving_authority = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
-    sa_ptw = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
-    sa_koc_laptop = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_koc_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_ratqa_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_wafra_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_fawares_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
     sa_temp_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
+    sa_ptw_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
+    sa_koc_laptop_pass = fields.Selection(_APP_STATUS, compute='_compute_summary_v2', string='Application Status')
 
     # ── Helpers ───────────────────────────────────────────────────────────────
     def _warn(self, doc_type):
@@ -334,8 +326,8 @@ class FieldPassEmployee(models.Model):
     def _calc_pass_status(self, pass_type, required, warn_days):
         if not required:
             return 'not_required'
-        main = self.pass_ids.filtered(lambda p: p.pass_type == pass_type and not p.is_temp)
-        temp = self.pass_ids.filtered(lambda p: p.pass_type == 'TEMP' and p.is_temp)
+        main = self.sudo().pass_ids.filtered(lambda p: p.pass_type == pass_type and not p.is_temp)
+        temp = self.sudo().pass_ids.filtered(lambda p: p.pass_type == 'TEMP' and p.is_temp)
         if not main:
             if temp and temp[0].date_expire:
                 delta = (temp[0].date_expire - date.today()).days
@@ -359,7 +351,7 @@ class FieldPassEmployee(models.Model):
         'passport_validity', 'residency_validity', 'gcc_national',
         'civil_id_validity', 'driving_license_validity', 'track_driving_license',
         'job_type', 'driving_authority_validity', 'driving_hse_training_date',
-        'ptw_expiry_date', 'track_ptw', 'koc_laptop_expiry_date', 'track_koc_laptop',
+        'driving_hse_expiry_date',
         'company_id',
     )
     def _compute_statuses(self):
@@ -377,29 +369,37 @@ class FieldPassEmployee(models.Model):
                 e.driving_license_status, e.driving_license_days = 'na', 0
             if e.job_type == 'Driver':
                 e.driving_authority_status, _ = e._calc(e.driving_authority_validity, e._warn('driving_authority'))
-                e.driving_hse_status, _ = e._calc(e.driving_hse_training_date, e._warn('driving_hse'))
+                # FIX: previously ran driving_hse_training_date through the
+                # same expiry-style calculation as everything else -- since
+                # a training COMPLETION date is always in the past, this
+                # made driving_hse_status show 'expired' forever, for every
+                # driver, regardless of how recently they trained. Now:
+                # "once obtained is valid", with the new optional
+                # driving_hse_expiry_date overriding this with a real
+                # valid/warning/expired calculation if the company wants to
+                # track a specific renewal deadline.
+                if e.driving_hse_expiry_date:
+                    e.driving_hse_status, _ = e._calc(e.driving_hse_expiry_date, e._warn('driving_hse'))
+                elif e.driving_hse_training_date:
+                    e.driving_hse_status = 'valid'
+                else:
+                    e.driving_hse_status = 'na'
             else:
                 e.driving_authority_status = 'na'
                 e.driving_hse_status = 'na'
-            if e.track_ptw and e.job_type != 'Driver':
-                e.ptw_status, e.ptw_days = e._calc(e.ptw_expiry_date, e._warn('ptw'))
-            else:
-                e.ptw_status, e.ptw_days = 'na', 0
-            if e.track_koc_laptop and e.job_type != 'Driver':
-                e.koc_laptop_status, e.koc_laptop_days = e._calc(e.koc_laptop_expiry_date, e._warn('koc_laptop'))
-            else:
-                e.koc_laptop_status, e.koc_laptop_days = 'na', 0
+            # NOTE: PTW and KOC Laptop Pass status no longer computed here --
+            # moved to field.pass (pass_type='PTW'/'KOC_LAPTOP'), tracked via
+            # the Pass Application/Renewal workflow instead.
 
     @api.depends(
         'passport_status', 'residency_status', 'civil_id_status',
         'driving_license_status', 'driving_authority_status', 'driving_hse_status',
-        'ptw_status', 'koc_laptop_status',
     )
     def _compute_overall_doc(self):
         RANK = {'expired': 2, 'warning': 1, 'valid': 0, 'na': -1}
         FIELDS = ['passport_status', 'residency_status', 'civil_id_status',
                   'driving_license_status', 'driving_authority_status',
-                  'driving_hse_status', 'ptw_status', 'koc_laptop_status']
+                  'driving_hse_status']
         for e in self:
             worst = max(RANK.get(getattr(e, f, 'na'), -1) for f in FIELDS)
             e.overall_doc_status = ('expired' if worst == 2 else
@@ -440,7 +440,7 @@ class FieldPassEmployee(models.Model):
 
     def _compute_pass_count(self):
         for e in self:
-            e.pass_count = len(e.pass_ids)
+            e.pass_count = len(e.sudo().pass_ids)
 
 
 
@@ -453,60 +453,98 @@ class FieldPassEmployee(models.Model):
                 'message': 'Driving HSE Training must be completed before setting Driving Authority.'
             }}
 
-    @api.onchange('track_ptw', 'ptw_expiry_date')
-    def _onchange_ptw(self):
-        if self.ptw_expiry_date or self.track_ptw:
-            from datetime import date
-            koc = self.pass_ids.filtered(
-                lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
-            if not koc:
-                self.track_ptw = False
-                self.ptw_expiry_date = False
-                return {'warning': {
-                    'title': 'Prerequisite Missing - متطلب مفقود',
-                    'message': 'A valid KOC Field Pass is required before enabling PTW.'
-                }}
-            valid_koc = any(p.date_expire >= date.today() for p in koc)
-            if not valid_koc:
-                self.track_ptw = False
-                self.ptw_expiry_date = False
-                return {'warning': {
-                    'title': 'KOC Pass Expired - التصريح منتهي',
-                    'message': 'The KOC Field Pass is expired. Please renew it before enabling PTW.'
-                }}
+    # NOTE: the old _onchange_ptw method was removed here -- track_ptw/
+    # ptw_expiry_date no longer exist on Employee (moved to Pass
+    # Application/Renewal). The same "valid KOC pass required" check now
+    # lives in field_pass.py's _check_documents_ready and the Application
+    # wizard's action_submit_application.
 
     # ── Prerequisites ─────────────────────────────────────────────────────────
-    @api.constrains('driving_authority_validity')
-    def _check_driving_authority_prerequisite(self):
+    # Domino chain, confirmed design: each document blocked from being set
+    # unless the PREVIOUS document in the chain is currently valid (valid or
+    # warning status both count — only expired/missing blocks).
+    #   Chain A: Passport -> Residency -> Civil ID (GCC skips Residency)
+    #   Chain B: Civil ID -> Driving License -> Driving HSE -> Driving Authority
+    _OK_STATUSES = ('valid', 'warning')
+
+    # ── Domino chain prerequisite checks ─────────────────────────────────────
+    # BUG FIX (confirmed via real report: renewing Passport threw "Cannot set
+    # Civil ID... Residency must be valid first"): these constraints were
+    # decorated to also re-fire whenever a DOWNSTREAM status changed (e.g.
+    # civil_id's check also listed passport_status/residency_status as
+    # triggers). Since @api.constrains fires on ANY listed dependency
+    # changing — not just the field the constraint is actually about —
+    # simply renewing an EARLIER document (recomputing its status) was
+    # retroactively re-validating LATER documents nobody touched, and
+    # blocking the very renewal meant to fix the chain. Each constraint now
+    # only re-checks when its OWN date field (or a genuinely relevant
+    # trigger like nationality/job type) changes — not when a downstream
+    # status recomputes as a side effect.
+    @api.constrains('residency_validity', 'gcc_national')
+    def _check_residency_prerequisite(self):
         for e in self:
-            if e.driving_authority_validity and not e.driving_hse_training_date:
+            if e.residency_validity and not e.gcc_national:
+                if e.passport_status not in e._OK_STATUSES:
+                    raise ValidationError(
+                        f'Cannot set Residency for "{e.name}": Passport must be valid first.'
+                    )
+
+    @api.constrains('civil_id_validity', 'gcc_national')
+    def _check_civil_id_prerequisite(self):
+        for e in self:
+            if not e.civil_id_validity:
+                continue
+            if e.gcc_national:
+                if e.passport_status not in e._OK_STATUSES:
+                    raise ValidationError(
+                        f'Cannot set Civil ID for "{e.name}": Passport must be valid first.'
+                    )
+            else:
+                if e.residency_status not in e._OK_STATUSES:
+                    raise ValidationError(
+                        f'Cannot set Civil ID for "{e.name}": Residency must be valid first.'
+                    )
+
+    @api.constrains('driving_license_validity')
+    def _check_driving_license_prerequisite(self):
+        for e in self:
+            if e.driving_license_validity and e.civil_id_status not in e._OK_STATUSES:
                 raise ValidationError(
-                    f'Cannot set Driving Authority for "{e.name}". '
-                    f'Driving HSE Training must be completed first.'
+                    f'Cannot set Driving License for "{e.name}": Civil ID must be valid first.'
                 )
 
-    @api.constrains('ptw_expiry_date', 'track_ptw')
-    def _check_ptw_prerequisite(self):
+    @api.constrains('driving_hse_training_date', 'job_type')
+    def _check_driving_hse_prerequisite(self):
         for e in self:
-            if e.ptw_expiry_date or e.track_ptw:
-                from datetime import date
-                koc = e.pass_ids.filtered(
-                    lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
-                if not koc:
+            if e.driving_hse_training_date and e.job_type == 'Driver':
+                if e.driving_license_status not in e._OK_STATUSES:
                     raise ValidationError(
-                        f'Cannot set PTW for "{e.name}". '
-                        f'A valid KOC Field Pass is required first.'
+                        f'Cannot record Driving HSE Training for "{e.name}": '
+                        f'Driving License must be valid first.'
                     )
-                valid_koc = any(p.date_expire >= date.today() for p in koc)
-                if not valid_koc:
-                    raise ValidationError(
-                        f'Cannot set PTW for "{e.name}". '
-                        f'The KOC Field Pass is expired. Please renew it first.'
-                    )
+
+    @api.constrains('driving_authority_validity')
+    def _check_driving_authority_prerequisite(self):
+        # UPGRADED: previously only checked whether driving_hse_training_date
+        # was SET at all (regardless of whether it was actually valid). Now
+        # checks the live driving_hse_status, consistent with the rest of
+        # the domino chain -- an expired HSE (per the optional expiry date)
+        # now correctly blocks Driving Authority too, not just a missing one.
+        for e in self:
+            if e.driving_authority_validity and e.driving_hse_status not in e._OK_STATUSES:
+                raise ValidationError(
+                    f'Cannot set Driving Authority for "{e.name}". '
+                    f'Driving HSE Training must be valid first.'
+                )
+
+    # NOTE: _check_ptw_prerequisite and _check_koc_laptop_prerequisite were
+    # removed here -- those fields no longer exist on Employee. The "valid
+    # KOC pass required" rule now lives on field.pass itself and the
+    # Application wizard, applied uniformly to all pass types that need it.
 
 
     def _get_app_status_label(self, pass_type):
-        latest = self.env['field.pass.application'].search([
+        latest = self.env['field.pass.application'].sudo().search([
             ('employee_id', '=', self.id),
             ('pass_type', '=', pass_type),
         ], order='event_date desc', limit=1)

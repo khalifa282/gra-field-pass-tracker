@@ -93,7 +93,7 @@
                                 </group>
                             </group>
                         </page>
-                        <page name="documents" string="Documents - المستندات">
+                        <page name="documents" string="Documents - المستندات" groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin">
                             <!-- Horizontal 3-column document layout -->
                             <group>
                                 <group string="Registration - التسجيل">
@@ -139,7 +139,7 @@
                             </group>
                         </page>
 
-                        <page name="field_passes" string="Field Passes - تصاريح الحقول">
+                        <page name="field_passes" string="Field Passes - تصاريح الحقول" groups="field_pass_tracker.group_fp_admin,field_pass_tracker.group_fp_ops_admin">
                             <group string="Pass Status - حالة التصريح">
                                 <group>
                                     <field name="pass_koc_status" string="KOC Field Pass - تصاريح الكي او سي" widget="badge"
@@ -277,7 +277,7 @@
 
     <!-- ACTION -->
     <record id="action_fp_vehicle" model="ir.actions.act_window">
-        <field name="name">Vehicles</field>
+        <field name="name">Vehicles - المركبات</field>
         <field name="res_model">field.pass.vehicle</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{'search_default_by_dept': 1}</field>

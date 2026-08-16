@@ -88,7 +88,7 @@
     </record>
 
     <record id="action_field_pass" model="ir.actions.act_window">
-        <field name="name">Field Passes</field>
+        <field name="name">Field Passes - تصاريح الحقول</field>
         <field name="res_model">field.pass</field>
         <field name="view_mode">tree,form</field>
     </record>

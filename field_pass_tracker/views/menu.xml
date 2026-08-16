@@ -1,46 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="menu_fp_root" name="Field Pass" sequence="90"
-              groups="field_pass_tracker.group_fp_viewer"/>
+    <!-- Overrides the DISPLAYED title of Odoo's own core Departments action
+         (hr.hr_department_tree_action) — this is not our action, we're just
+         changing its name field for when it's opened from our menu. Uses
+         the same external ID on purpose so Odoo updates the existing
+         record rather than creating a duplicate. -->
+    <record id="hr.hr_department_tree_action" model="ir.actions.act_window">
+        <field name="name">Departments - الأقسام</field>
+    </record>
+
+    <menuitem id="menu_fp_root" name="GRA" sequence="90"
+              groups="field_pass_tracker.group_fp_viewer,field_pass_tracker.group_fp_hr_viewer,field_pass_tracker.group_fp_ops_viewer,field_pass_tracker.group_fp_super_admin"/>
     <menuitem id="menu_fp_dashboard" name="Dashboard"
               parent="menu_fp_root" sequence="1"
               action="field_pass_tracker.action_field_pass_dashboard"
-              groups="field_pass_tracker.group_fp_viewer"/>
+              groups="field_pass_tracker.group_fp_viewer,field_pass_tracker.group_fp_hr_viewer"/>
     <menuitem id="menu_fp_records" name="Records"
               parent="menu_fp_root" sequence="10"
               groups="field_pass_tracker.group_fp_viewer"/>
-    <menuitem id="menu_fp_employees" name="Employees"
+    <menuitem id="menu_fp_employees" name="Employees - الموظفين"
               parent="menu_fp_records" sequence="10"
               action="field_pass_tracker.action_fp_employee"
               groups="field_pass_tracker.group_fp_viewer"/>
-    <menuitem id="menu_fp_vehicles" name="Vehicles"
+    <menuitem id="menu_fp_vehicles" name="Vehicles - المركبات"
               parent="menu_fp_records" sequence="20"
               action="field_pass_tracker.action_fp_vehicle"
               groups="field_pass_tracker.group_fp_viewer"/>
-    <menuitem id="menu_fp_field_passes" name="Field Passes"
+    <menuitem id="menu_fp_field_passes" name="Field Passes - تصاريح الحقول"
               parent="menu_fp_records" sequence="30"
               action="field_pass_tracker.action_field_pass"
               groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_companies" name="Company - الشركة"
+              parent="menu_fp_records" sequence="50"
+              action="field_pass_tracker.action_fp_company_records"
+              groups="field_pass_tracker.group_fp_admin"/>
     <menuitem id="menu_fp_renewals_root" name="Renewals"
               parent="menu_fp_root" sequence="20"
               groups="field_pass_tracker.group_fp_viewer"/>
-    <menuitem id="menu_fp_renewal_wizard" name="Document Renewal"
+    <menuitem id="menu_fp_renewal_wizard" name="Document Renewal - تجديد المستندات"
               parent="menu_fp_renewals_root" sequence="10"
               action="field_pass_tracker.action_fp_renewal_wizard"
               groups="field_pass_tracker.group_fp_viewer"/>
-    <menuitem id="menu_fp_application_wizard" name="Pass Applications"
+    <menuitem id="menu_fp_application_wizard" name="Pass Renewals - تجديد التصاريح"
               parent="menu_fp_renewals_root" sequence="20"
               action="field_pass_tracker.action_fp_application_wizard"
               groups="field_pass_tracker.group_fp_viewer"/>
+    <menuitem id="menu_fp_hr_root" name="HR"
+              parent="menu_fp_root" sequence="30"
+              groups="field_pass_tracker.group_fp_hr_viewer"/>
+    <menuitem id="menu_fp_hr_requests" name="Requests"
+              parent="menu_fp_hr_root" sequence="10"
+              groups="field_pass_tracker.group_fp_hr_viewer"/>
+    <menuitem id="menu_fp_hr_residency_request" name="Residency Transfer Requests - طلب تحويل اقامه"
+              parent="menu_fp_hr_requests" sequence="10"
+              action="field_pass_tracker.action_fp_hr_residency_request"
+              groups="field_pass_tracker.group_fp_hr_viewer"/>
+    <menuitem id="menu_fp_hr_visa_request" name="Work Visa Requests - طلبات سمة الدخول"
+              parent="menu_fp_hr_requests" sequence="20"
+              action="field_pass_tracker.action_fp_hr_visa_request"
+              groups="field_pass_tracker.group_fp_hr_viewer"/>
     <menuitem id="menu_fp_admin" name="Administration"
               parent="menu_fp_root" sequence="50"
-              groups="field_pass_tracker.group_fp_manager"/>
-    <menuitem id="menu_fp_departments" name="Departments"
+              groups="field_pass_tracker.group_fp_super_admin"/>
+    <menuitem id="menu_fp_admin_companies" name="Companies - الشركات"
               parent="menu_fp_admin" sequence="10"
-              action="hr.hr_department_tree_action"
-              groups="field_pass_tracker.group_fp_manager"/>
-    <menuitem id="menu_fp_alert_config" name="Alert Settings"
+              action="field_pass_tracker.action_fp_company"
+              groups="field_pass_tracker.group_fp_super_admin"/>
+    <menuitem id="menu_fp_departments" name="Departments - الأقسام"
               parent="menu_fp_admin" sequence="20"
+              action="hr.hr_department_tree_action"
+              groups="field_pass_tracker.group_fp_super_admin"/>
+    <menuitem id="menu_fp_alert_config" name="Alert Settings - إعدادات التنبيهات"
+              parent="menu_fp_admin" sequence="30"
               action="field_pass_tracker.action_fp_alert_config"
-              groups="field_pass_tracker.group_fp_manager"/>
+              groups="field_pass_tracker.group_fp_super_admin"/>
+    <menuitem id="menu_fp_alert_log" name="Notification Log - سجل الإشعارات"
+              parent="menu_fp_admin" sequence="40"
+              action="field_pass_tracker.action_fp_alert_log"
+              groups="field_pass_tracker.group_fp_super_admin"/>
 </odoo>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <record id="view_hr_dept_fp_form" model="ir.ui.view">
@@ -6,7 +6,37 @@
         <field name="model">hr.department</field>
         <field name="inherit_id" ref="hr.view_department_form"/>
         <field name="arch" type="xml">
+            <!-- Company shifted to the top. FIX from the previous attempt:
+                 that version inserted a new <group> INSIDE the native
+                 group wrapping Name/Manager/Parent Department, which broke
+                 their label alignment (nested groups aren't properly
+                 supported for this). This targets the GROUP itself (the
+                 one containing the 'name' field) and inserts as a sibling
+                 BEFORE it instead — no nesting. -->
+            <xpath expr="//group[.//field[@name='name']]" position="before">
+                <group string="Company - الشركة" col="2">
+                    <field name="fp_company_id"/>
+                </group>
+            </xpath>
+            <!-- Manager (native) hidden — redundant with our own OPS
+                 Manager slot below. Parent Department also hidden —
+                 confirmed no department hierarchy/nesting is wanted, so
+                 this native field is simply not needed at all. -->
+            <xpath expr="//field[@name='manager_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//sheet" position="inside">
+                <group string="OPS Role Assignment - تعيين أدوار العمليات" col="2">
+                    <field name="ops_manager_id"/>
+                    <field name="ops_admin1_id"/>
+                    <field name="ops_admin2_id"/>
+                    <field name="ops_viewer1_id"/>
+                    <field name="ops_viewer2_id"/>
+                    <field name="ops_viewer3_id"/>
+                </group>
                 <group string="Clients - شركات النفط" col="4">
                     <field name="fp_client_koc"
                            string="Kuwait Oil Company (KOC) - شركة نفط الكويت"/>

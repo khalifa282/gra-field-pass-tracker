@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_fp_alert_log_tree" model="ir.ui.view">
+        <field name="name">field.pass.alert.log.tree</field>
+        <field name="model">field.pass.alert.log</field>
+        <field name="arch" type="xml">
+            <tree string="Notification Log - سجل الإشعارات" create="false" edit="false" delete="false">
+                <field name="sent_date"/>
+                <field name="entity_name" string="Employee/Vehicle - الموظف/المركبة"/>
+                <field name="department_id" string="Department - القسم"/>
+                <field name="document_type" string="Document/Pass - المستند/التصريح"/>
+                <field name="alert_type" string="Alert Type - نوع الإشعار" widget="badge"
+                       decoration-info="alert_type == 'submitted'"
+                       decoration-success="alert_type == 'issued'"
+                       decoration-danger="alert_type in ('rejected','expired')"
+                       decoration-warning="alert_type == 'warning'"/>
+                <field name="recipient_emails" string="Sent To - أرسل إلى"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_fp_alert_log" model="ir.actions.act_window">
+        <field name="name">Notification Log - سجل الإشعارات</field>
+        <field name="res_model">field.pass.alert.log</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+</odoo>

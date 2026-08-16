@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+from .field_pass_notifications import send_fp_notification
 
 DOCUMENT_TYPES = [
     ('passport', 'Passport - الجواز'),
@@ -9,8 +10,8 @@ DOCUMENT_TYPES = [
     ('driving_license', 'Driving License - رخصة القيادة'),
     ('driving_hse', 'Driving HSE Training - تدريب السلامة للسائق'),
     ('driving_authority', 'Driving Authority - تصريح القيادة'),
-    ('ptw', 'PTW - إذن فتح الآبار'),
-    ('koc_laptop', 'KOC Laptop Pass - تصريح اللابتوب KOC'),
+    # NOTE: PTW and KOC Laptop Pass moved to Pass Application/Renewal —
+    # confirmed change, no longer Document Renewal types.
     ('registration', 'Registration - تسجيل المركبة'),
     ('third_party', '3rd Party Inspection - فحص طرف ثالث'),
     ('clearance', 'Clearance Certificate - شهادة الفحص KOC'),
@@ -23,8 +24,6 @@ DOC_ATTACH_MAP = {
     'driving_license': ('driving_license_validity', 'attachment_driving_license', 'attachment_driving_license_name'),
     'driving_hse': ('driving_hse_training_date', 'attachment_driving_hse', 'attachment_driving_hse_name'),
     'driving_authority': ('driving_authority_validity', 'attachment_driving_authority', 'attachment_driving_authority_name'),
-    'ptw': ('ptw_expiry_date', 'attachment_ptw', 'attachment_ptw_name'),
-    'koc_laptop': ('koc_laptop_expiry_date', 'attachment_koc_laptop', 'attachment_koc_laptop_name'),
     'registration': ('registration_expiry_date', 'attachment_registration', 'attachment_registration_name'),
     'third_party': ('third_party_inspection_date', 'attachment_third_party', 'attachment_third_party_name'),
     'clearance': ('clearance_certificate_expiry', 'attachment_clearance', 'attachment_clearance_name'),
@@ -191,27 +190,59 @@ class FieldPassRenewalWizard(models.TransientModel):
             return [('vehicle_id', '=', self.vehicle_id.id)]
         return []
 
-    def _new_wizard(self):
-        new = self.env['field.pass.renewal.wizard'].create({
-            'document_type': self.document_type,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        new._compute_status()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Document Renewal',
-            'res_model': 'field.pass.renewal.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+    # NOTE: _new_wizard() was removed here — even after making it reuse
+    # self.id instead of creating a new record, returning ANY act_window
+    # action from a button push still stacked a new breadcrumb entry (this
+    # is fundamental Odoo client behavior, not fixable via target/res_id
+    # tricks). action_submit_renewal now just calls _compute_status() and
+    # returns True directly instead.
 
     def action_submit_renewal(self):
         self.ensure_one()
         domain = self._get_entity_domain()
         if not domain:
             raise ValidationError('Please select an employee or vehicle.')
+
+        _OK = ('valid', 'warning')
+
+        # Prerequisite: domino chain (Passport -> Residency -> Civil ID ->
+        # Driving License), matching the same rules now enforced on the
+        # Employee model itself (field_pass_employee.py) — duplicated here
+        # so Submit is gated the same way Issue already is, not just when
+        # the Employee record itself gets written.
+        if self.document_type == 'residency' and self.employee_id and not self.employee_id.gcc_national:
+            if self.employee_id.passport_status not in _OK:
+                raise ValidationError(
+                    f'Cannot submit Residency renewal for "{self.employee_id.name}": '
+                    f'Passport must be valid first.'
+                )
+
+        if self.document_type == 'civil_id' and self.employee_id:
+            emp = self.employee_id
+            if emp.gcc_national:
+                if emp.passport_status not in _OK:
+                    raise ValidationError(
+                        f'Cannot submit Civil ID renewal for "{emp.name}": Passport must be valid first.'
+                    )
+            else:
+                if emp.residency_status not in _OK:
+                    raise ValidationError(
+                        f'Cannot submit Civil ID renewal for "{emp.name}": Residency must be valid first.'
+                    )
+
+        if self.document_type == 'driving_license' and self.employee_id:
+            if self.employee_id.civil_id_status not in _OK:
+                raise ValidationError(
+                    f'Cannot submit Driving License renewal for "{self.employee_id.name}": '
+                    f'Civil ID must be valid first.'
+                )
+
+        if self.document_type == 'driving_hse' and self.employee_id:
+            if self.employee_id.driving_license_status not in _OK:
+                raise ValidationError(
+                    f'Cannot submit Driving HSE Training renewal for "{self.employee_id.name}": '
+                    f'Driving License must be valid first.'
+                )
 
         # Prerequisite: Driving Authority requires issued HSE Training
         if self.document_type == 'driving_authority' and self.employee_id:
@@ -226,16 +257,11 @@ class FieldPassRenewalWizard(models.TransientModel):
                     f'Driving HSE Training must be completed and issued first.'
                 )
 
-        # Prerequisite: PTW requires valid issued KOC Field Pass
-        if self.document_type == 'ptw' and self.employee_id:
-            from datetime import date
-            koc = self.employee_id.pass_ids.filtered(
-                lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
-            if not koc or not any(p.date_expire >= date.today() for p in koc):
-                raise ValidationError(
-                    f'Cannot submit PTW renewal for "{self.employee_id.name}". '
-                    f'A valid KOC Field Pass must be issued first.'
-                )
+        # NOTE: PTW and KOC Laptop Pass prerequisite checks removed here —
+        # those document types no longer exist in Document Renewal (moved
+        # to Pass Application/Renewal — see field_pass_renewal_wizard.py's
+        # action_submit_application and field_pass.py).
+
         # Vehicle prerequisites
         if self.vehicle_id:
             from datetime import date as dt
@@ -247,11 +273,20 @@ class FieldPassRenewalWizard(models.TransientModel):
                         f'A valid Registration is required first.'
                     )
             if self.document_type == 'clearance':
+                # FIX: previously only checked 3rd Party Inspection —
+                # Registration must ALSO be valid, matching the actual
+                # confirmed rule (both required, not just one).
+                reg = self.vehicle_id.registration_expiry_date
                 tp = self.vehicle_id.third_party_inspection_expiry
+                missing = []
+                if not reg or reg < dt.today():
+                    missing.append('Registration')
                 if not tp or tp < dt.today():
+                    missing.append('3rd Party Inspection')
+                if missing:
                     raise ValidationError(
-                        f'Cannot submit Clearance Certificate for "{self.vehicle_id.plate_number}". '
-                        f'A valid 3rd Party Inspection is required first.'
+                        f'Cannot submit Clearance Certificate for "{self.vehicle_id.plate_number}": '
+                        f'the following must be valid first: {", ".join(missing)}.'
                     )
 
         # Check latest event — only block if latest is submitted
@@ -271,7 +306,27 @@ class FieldPassRenewalWizard(models.TransientModel):
         else:
             vals['vehicle_id'] = self.vehicle_id.id
         self.env['field.pass.renewal'].create(vals)
-        return self._new_wizard()
+
+        entity = self.employee_id or self.vehicle_id
+        doc_label = dict(DOCUMENT_TYPES).get(self.document_type, self.document_type)
+        send_fp_notification(
+            self.env, entity, doc_label.split(' - ')[0], 'submitted',
+            event_by_name=self.env.user.name,
+        )
+
+        # FIX: previously returned a full ir.actions.act_window dict (via
+        # _new_wizard(), even after making it reuse self.id) — this STILL
+        # stacked a new breadcrumb entry every time, because ANY act_window
+        # action returned from a button push is treated by Odoo's client as
+        # a real navigation event, regardless of target value or matching
+        # res_id. The correct, standard Odoo pattern for "stay on this
+        # screen, just refresh" is to return True (or nothing) instead —
+        # no navigation occurs, so no breadcrumb is pushed. The explicit
+        # _compute_status() call forces the stored compute fields
+        # (has_open_submission, history) to update immediately, so the
+        # form shows fresh data on reload.
+        self._compute_status()
+        return True
 
     def action_open_issue_wizard(self):
         self.ensure_one()
@@ -292,6 +347,7 @@ class FieldPassRenewalWizard(models.TransientModel):
                 'default_entity_type': self.entity_type,
                 'default_employee_id': self.employee_id.id if self.employee_id else False,
                 'default_vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
+                'default_parent_wizard_id': self.id,
             },
         }
 
@@ -314,6 +370,7 @@ class FieldPassRenewalWizard(models.TransientModel):
                 'default_entity_type': self.entity_type,
                 'default_employee_id': self.employee_id.id if self.employee_id else False,
                 'default_vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
+                'default_parent_wizard_id': self.id,
             },
         }
 
@@ -326,6 +383,10 @@ class FieldPassRenewalIssueWizard(models.TransientModel):
     entity_type = fields.Char()
     employee_id = fields.Many2one('field.pass.employee')
     vehicle_id = fields.Many2one('field.pass.vehicle')
+    # NEW — reference back to the main Document Renewal wizard screen that
+    # opened this popup, so action_confirm can return to the SAME record
+    # instead of creating a new one (fixes breadcrumb stacking).
+    parent_wizard_id = fields.Many2one('field.pass.renewal.wizard')
     new_expiry_date = fields.Date(
         string='New Expiry Date - تاريخ الانتهاء الجديد', required=True)
     attachment_new = fields.Binary(
@@ -340,32 +401,10 @@ class FieldPassRenewalIssueWizard(models.TransientModel):
                     f'Cannot issue Driving Authority for "{self.employee_id.name}". '
                     f'Driving HSE Training must be completed first.'
                 )
-        # Prerequisite: PTW requires valid KOC Field Pass
-        if self.document_type == 'ptw' and self.employee_id:
-            from datetime import date
-            koc = self.employee_id.pass_ids.filtered(
-                lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
-            if not koc or not any(p.date_expire >= date.today() for p in koc):
-                raise ValidationError(
-                    f'Cannot issue PTW for "{self.employee_id.name}". '
-                    f'A valid KOC Field Pass is required first.'
-                )
-        # Prerequisite checks before issuing
-        if self.document_type == 'driving_authority' and self.employee_id:
-            if not self.employee_id.driving_hse_training_date:
-                raise ValidationError(
-                    f'Cannot issue Driving Authority for "{self.employee_id.name}". '
-                    f'Driving HSE Training must be completed first.'
-                )
-        if self.document_type == 'ptw' and self.employee_id:
-            from datetime import date
-            koc = self.employee_id.pass_ids.filtered(
-                lambda p: p.pass_type == 'KOC' and not p.is_temp and p.date_expire)
-            if not koc or not any(p.date_expire >= date.today() for p in koc):
-                raise ValidationError(
-                    f'Cannot issue PTW for "{self.employee_id.name}". '
-                    f'A valid KOC Field Pass is required first.'
-                )
+        # NOTE: this Driving Authority check previously appeared twice in a
+        # row here (identical duplicate) — cleaned up as a pre-existing bug
+        # unrelated to the PTW/KOC Laptop move. The PTW check that used to
+        # sit here was removed — PTW is no longer a Document Renewal type.
 
         vals = {
             'document_type': self.document_type,
@@ -382,20 +421,22 @@ class FieldPassRenewalIssueWizard(models.TransientModel):
         renewal = self.env['field.pass.renewal'].create(vals)
         renewal.action_update_record()
 
-        new = self.env['field.pass.renewal.wizard'].create({
-            'document_type': self.document_type,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        new._compute_status()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Document Renewal',
-            'res_model': 'field.pass.renewal.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+        entity = self.employee_id or self.vehicle_id
+        doc_label = dict(DOCUMENT_TYPES).get(self.document_type, self.document_type)
+        send_fp_notification(
+            self.env, entity, doc_label.split(' - ')[0], 'issued',
+            event_by_name=self.env.user.name,
+            extra_note=f'New expiry date: {self.new_expiry_date}',
+        )
+
+        # FIX: force the parent's stored compute fields (has_open_submission,
+        # history) to update immediately, then just CLOSE this popup —
+        # returning act_window_close (not a new act_window action) tells
+        # Odoo's client to dismiss the dialog and refresh the parent screen
+        # underneath in place, with no breadcrumb impact at all.
+        if self.parent_wizard_id:
+            self.parent_wizard_id._compute_status()
+        return {'type': 'ir.actions.act_window_close'}
 
 
 class FieldPassRenewalRejectWizard(models.TransientModel):
@@ -406,6 +447,7 @@ class FieldPassRenewalRejectWizard(models.TransientModel):
     entity_type = fields.Char()
     employee_id = fields.Many2one('field.pass.employee')
     vehicle_id = fields.Many2one('field.pass.vehicle')
+    parent_wizard_id = fields.Many2one('field.pass.renewal.wizard')
     rejection_reason = fields.Text(
         string='Rejection Reason - سبب الرفض', required=True)
 
@@ -422,17 +464,14 @@ class FieldPassRenewalRejectWizard(models.TransientModel):
             vals['vehicle_id'] = self.vehicle_id.id
         self.env['field.pass.renewal'].create(vals)
 
-        new = self.env['field.pass.renewal.wizard'].create({
-            'document_type': self.document_type,
-            'employee_id': self.employee_id.id if self.employee_id else False,
-            'vehicle_id': self.vehicle_id.id if self.vehicle_id else False,
-        })
-        new._compute_status()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Document Renewal',
-            'res_model': 'field.pass.renewal.wizard',
-            'view_mode': 'form',
-            'target': 'inline',
-            'res_id': new.id,
-        }
+        entity = self.employee_id or self.vehicle_id
+        doc_label = dict(DOCUMENT_TYPES).get(self.document_type, self.document_type)
+        send_fp_notification(
+            self.env, entity, doc_label.split(' - ')[0], 'rejected',
+            event_by_name=self.env.user.name,
+            extra_note=f'Reason: {self.rejection_reason}',
+        )
+
+        if self.parent_wizard_id:
+            self.parent_wizard_id._compute_status()
+        return {'type': 'ir.actions.act_window_close'}
