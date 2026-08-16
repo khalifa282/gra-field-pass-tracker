@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'GRA',
-    'version': '16.0.3.0.0',
+    'version': '16.0.4.0.0',
     'category': 'Human Resources',
     'summary': 'Track employee and vehicle field passes, document expiry and compliance for oilfield operations',
     'author': 'Khalifa Aldhafeeri',
