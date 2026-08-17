@@ -11,7 +11,7 @@
                   decoration-info="state in ('check_submitted','transfer_submitted')">
                 <field name="name"/>
                 <field name="candidate_name"/>
-                <field name="company_id"/>
+                <field name="fp_company_id"/>
                 <field name="department_id"/>
                 <field name="state" widget="badge"/>
             </tree>
@@ -26,21 +26,34 @@
             <form string="Residency Transfer Request - طلب تحويل الإقامة">
                 <header>
                     <button name="action_submit_check" type="object" string="Submit for Check - إرسال للفحص"
-                            class="btn-primary" attrs="{'invisible': [('state','!=','draft')]}"/>
+                            class="btn-primary" attrs="{'invisible': [('state','!=','draft')]}"
+                            groups="field_pass_tracker.group_fp_hr_admin"/>
                     <button name="action_open_check_wizard" type="object" string="GRO: Respond - رد الجهة الحكومية"
-                            class="btn-primary" attrs="{'invisible': [('state','!=','check_submitted')]}"/>
+                            class="btn-primary" attrs="{'invisible': [('state','!=','check_submitted')]}"
+                            groups="field_pass_tracker.group_fp_admin"/>
                     <button name="action_submit_transfer" type="object" string="Submit Transfer Request - إرسال طلب النقل"
-                            class="btn-primary" attrs="{'invisible': ['|', ('state','!=','check_done'), ('transferable','!=','yes')]}"/>
+                            class="btn-primary" attrs="{'invisible': ['|', ('state','!=','check_done'), ('transferable','!=','yes')]}"
+                            groups="field_pass_tracker.group_fp_hr_admin"/>
                     <button name="action_open_reject_wizard" type="object" string="Reject - رفض"
-                            class="btn-danger" attrs="{'invisible': [('state','!=','transfer_submitted')]}"/>
+                            class="btn-danger" attrs="{'invisible': [('state','!=','transfer_submitted')]}"
+                            groups="field_pass_tracker.group_fp_admin"/>
                     <button name="action_mark_under_process" type="object" string="Mark Under Process - قيد المعالجة"
-                            class="btn-primary" attrs="{'invisible': [('state','!=','transfer_submitted')]}"/>
+                            class="btn-primary" attrs="{'invisible': [('state','!=','transfer_submitted')]}"
+                            groups="field_pass_tracker.group_fp_admin"/>
+                    <button name="action_submit_for_approval" type="object" string="Submit for Approval - إرسال للموافقة"
+                            class="btn-primary" attrs="{'invisible': [('state','!=','under_process')]}"
+                            groups="field_pass_tracker.group_fp_admin"/>
                     <button name="action_complete" type="object" string="Complete - إكمال"
-                            class="btn-primary" attrs="{'invisible': [('state','!=','under_process')]}"/>
+                            class="btn-primary" attrs="{'invisible': [('state','!=','pending_approval')]}"
+                            groups="field_pass_tracker.group_fp_manager"/>
                     <button name="action_reopen" type="object" string="Reopen - إعادة فتح"
-                            class="btn-primary" attrs="{'invisible': [('state','!=','rejected')]}"/>
+                            class="btn-primary" attrs="{'invisible': [('state','!=','rejected')]}"
+                            groups="field_pass_tracker.group_fp_hr_admin"/>
+                    <button name="action_close" type="object" string="Close - إغلاق"
+                            class="btn-secondary" attrs="{'invisible': [('state','!=','rejected')]}"
+                            groups="field_pass_tracker.group_fp_hr_admin"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,check_submitted,check_done,transfer_submitted,completed"/>
+                           statusbar_visible="draft,check_submitted,check_done,transfer_submitted,pending_approval,completed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -55,7 +68,7 @@
                             <field name="candidate_contact_no"/>
                         </group>
                         <group>
-                            <field name="company_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="fp_company_id" options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="department_id" options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="internal_position_title"/>
                             <field name="suggested_position_title"/>
@@ -65,12 +78,14 @@
                     <group string="Check-Stage Documents - مستندات مرحلة الفحص">
                         <field name="attachment_passport" widget="binary" filename="attachment_passport_name" string="Passport - جواز السفر"/>
                         <field name="attachment_passport_name" invisible="1"/>
+                        <field name="passport_validity"/>
                         <field name="attachment_civil_id" widget="binary" filename="attachment_civil_id_name" string="Civil ID - البطاقة المدنية"/>
                         <field name="attachment_civil_id_name" invisible="1"/>
                         <field name="attachment_work_permit" widget="binary" filename="attachment_work_permit_name" string="Work Permit - إذن العمل"/>
                         <field name="attachment_work_permit_name" invisible="1"/>
                         <field name="attachment_driving_license" widget="binary" filename="attachment_driving_license_name" string="Driving License (Optional) - رخصة القيادة (اختياري)"/>
                         <field name="attachment_driving_license_name" invisible="1"/>
+                        <field name="driving_license_validity"/>
                         <field name="attachment_education_cert" widget="binary" filename="attachment_education_cert_name" string="Education Certificate - الشهادة الدراسية"/>
                         <field name="attachment_education_cert_name" invisible="1"/>
                     </group>
@@ -92,15 +107,17 @@
                     </group>
 
                     <group string="Completion Documents - مستندات الإكمال"
-                           attrs="{'invisible': [('state','not in',['under_process','completed'])]}">
+                           attrs="{'invisible': [('state','not in',['under_process','pending_approval','completed'])]}">
                         <field name="attachment_final_work_permit" widget="binary" filename="attachment_final_work_permit_name" string="Work Permit - اذن العمل"/>
                         <field name="attachment_final_work_permit_name" invisible="1"/>
+                        <field name="work_permit_validity"/>
                         <field name="attachment_health_insurance" widget="binary" filename="attachment_health_insurance_name" string="Health Insurance - الضمان الصحي"/>
                         <field name="attachment_health_insurance_name" invisible="1"/>
                         <field name="attachment_moi_migration" widget="binary" filename="attachment_moi_migration_name" string="MOI Migration - الهجرة"/>
                         <field name="attachment_moi_migration_name" invisible="1"/>
                         <field name="attachment_final_civil_id" widget="binary" filename="attachment_final_civil_id_name" string="Civil ID - البطاقة المدنية"/>
                         <field name="attachment_final_civil_id_name" invisible="1"/>
+                        <field name="civil_id_validity"/>
                     </group>
 
                     <notebook>
@@ -116,6 +133,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>

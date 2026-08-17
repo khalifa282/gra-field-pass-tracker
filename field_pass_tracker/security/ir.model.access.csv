@@ -71,6 +71,7 @@ access_fp_company_admin,company admin,model_field_pass_company,field_pass_tracke
 access_fp_company_viewer,company viewer,model_field_pass_company,field_pass_tracker.group_fp_viewer,1,0,0,0
 access_fp_company_manager,company manager,model_field_pass_company,field_pass_tracker.group_fp_manager,1,1,1,1
 access_fp_company_hr_manager,company hr manager,model_field_pass_company,field_pass_tracker.group_fp_hr_manager,1,0,0,0
+access_fp_company_hr_admin,company hr admin,model_field_pass_company,field_pass_tracker.group_fp_hr_admin,1,0,0,0
 access_fp_company_document_admin,company document admin,model_field_pass_company_document,field_pass_tracker.group_fp_admin,1,1,1,0
 access_fp_company_document_viewer,company document viewer,model_field_pass_company_document,field_pass_tracker.group_fp_viewer,1,0,0,0
 access_fp_company_document_manager,company document manager,model_field_pass_company_document,field_pass_tracker.group_fp_manager,1,1,1,1

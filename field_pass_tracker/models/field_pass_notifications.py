@@ -35,6 +35,44 @@ def notify_track(env, group_xml_id, subject, body_html):
     }).send()
 
 
+# Maps the Viewer-tier group (used for email, which everyone on the track
+# sees) to the Admin-tier group (used for Activities, since only Admin+
+# Manager can actually act on an HR Request — assigning an actionable
+# to-do to a Viewer who has no write access would just be confusing).
+_ACTIVITY_GROUP_MAP = {
+    'field_pass_tracker.group_fp_viewer': 'field_pass_tracker.group_fp_admin',
+    'field_pass_tracker.group_fp_hr_viewer': 'field_pass_tracker.group_fp_hr_admin',
+}
+
+
+def notify_track_activity(env, record, to_group, summary, note=''):
+    """
+    Confirmed design: alongside the email notification (which may not
+    actually be delivered anywhere until a real SMTP server is
+    configured), also create a native Odoo Activity on the record itself
+    for every Admin/Manager-tier user on the target track. This shows up
+    immediately in their Activities bell icon — a purely in-app,
+    database-only mechanism that needs no mail server at all. One
+    activity per person, so everyone sees their own, not a single shared
+    one.
+    """
+    activity_group_xml_id = _ACTIVITY_GROUP_MAP.get(to_group, to_group)
+    group = env.ref(activity_group_xml_id)
+    if not group.users:
+        return
+    model_id = env['ir.model']._get(record._name).id
+    todo_type = env.ref('mail.mail_activity_data_todo').id
+    for user in group.users:
+        env['mail.activity'].sudo().create({
+            'res_model_id': model_id,
+            'res_id': record.id,
+            'activity_type_id': todo_type,
+            'summary': summary,
+            'note': note,
+            'user_id': user.id,
+        })
+
+
 def send_fp_notification(env, entity, document_label, alert_type,
                           event_by_name='', extra_note='',
                           document_type_key='', expiry_date=None):

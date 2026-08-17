@@ -224,7 +224,7 @@
                                         <field name="department_id" string="Department - القسم"/>
                                         <field name="state" string="Status - الحالة" widget="badge"
                                                decoration-danger="state=='rejected'" decoration-info="state not in ('rejected','completed')"/>
-                                        <field name="create_uid" string="By - بواسطة"/>
+                                        <field name="last_action_by" string="By - بواسطة"/>
                                         <field name="create_date" string="Created - تاريخ الإنشاء"/>
                                     </tree>
                                 </field>
@@ -256,7 +256,7 @@
                                         <field name="department_id" string="Department - القسم"/>
                                         <field name="state" string="Status - الحالة" widget="badge"
                                                decoration-danger="state=='rejected'" decoration-info="state not in ('rejected','closed')"/>
-                                        <field name="create_uid" string="By - بواسطة"/>
+                                        <field name="last_action_by" string="By - بواسطة"/>
                                         <field name="create_date" string="Created - تاريخ الإنشاء"/>
                                     </tree>
                                 </field>

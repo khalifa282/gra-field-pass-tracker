@@ -5,6 +5,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class FieldPassHrVisaRequest(models.Model):
     _name = 'field.pass.hr.visa.request'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'HR Request — Issue a Work Visa'
     _order = 'create_date desc'
 
@@ -19,9 +20,10 @@ class FieldPassHrVisaRequest(models.Model):
 
     def _notify_other_side(self, to_group, subject_suffix, extra=''):
         """Same pattern as the Residency Transfer request — HR actions
-        notify GRO, GRO actions notify HR, symmetric at every stage."""
+        notify GRO, GRO actions notify HR, symmetric at every stage. Both
+        email and a native Activity get created per event."""
         self.ensure_one()
-        from .field_pass_notifications import notify_track
+        from .field_pass_notifications import notify_track, notify_track_activity
         subject = f'Work Visa {self.name} — {subject_suffix}'
         body_html = (
             f'<p><b>{self.name}</b> — {self.candidate_name}</p>'
@@ -30,6 +32,7 @@ class FieldPassHrVisaRequest(models.Model):
         if extra:
             body_html += f'<p>{extra}</p>'
         notify_track(self.env, to_group, subject, body_html)
+        notify_track_activity(self.env, self, to_group, subject, extra)
 
     name = fields.Char(default='New', readonly=True, copy=False)
 
@@ -40,11 +43,11 @@ class FieldPassHrVisaRequest(models.Model):
     candidate_name = fields.Char(string='Candidate Name (English)', required=True)
     candidate_name_ar = fields.Char(string='اسم الموظف بالعربي')
     passport_no = fields.Char(string='Passport No - رقم الجواز', required=True)
-    company_id = fields.Many2one(
+    fp_company_id = fields.Many2one(
         'field.pass.company', string='Company - الشركة', required=True)
     department_id = fields.Many2one(
         'hr.department', string='Department - القسم', required=True,
-        domain="[('fp_company_id', '=', company_id)]",
+        domain="[('fp_company_id', '=', fp_company_id)]",
         help='Filtered to departments belonging to the selected Company.',
     )
     internal_position_title = fields.Char(string='Position Title - المسمى الوظيفي')
@@ -57,6 +60,7 @@ class FieldPassHrVisaRequest(models.Model):
     # confirmed. ──────────────────────────────────────────────────────────
     attachment_passport = fields.Binary(string='Passport - جواز السفر', attachment=True)
     attachment_passport_name = fields.Char()
+    passport_validity = fields.Date(string='Passport Expiry - تاريخ انتهاء الجواز')
     attachment_education_degree = fields.Binary(string='Education Degree - الشهادة الدراسية', attachment=True)
     attachment_education_degree_name = fields.Char()
     attachment_job_offer = fields.Binary(string='Signed Job Offer - عرض العمل الموقع', attachment=True)
@@ -85,6 +89,8 @@ class FieldPassHrVisaRequest(models.Model):
     attachment_fingerprints_name = fields.Char()
     attachment_no_criminal_record = fields.Binary(string='No Criminal Record Certificate - شهادة لا حكم عليه', attachment=True)
     attachment_no_criminal_record_name = fields.Char()
+    attachment_stamped_visa = fields.Binary(string='Stamped Work Visa - سمة دخول مختومة', attachment=True)
+    attachment_stamped_visa_name = fields.Char()
 
     # 2) Candidate Arrived — Degree Equivalency is a PROCESS step, no
     # upload (confirmed) — just a standing reminder note about the 3
@@ -102,6 +108,7 @@ class FieldPassHrVisaRequest(models.Model):
     )
     attachment_work_permit_copy = fields.Binary(string='Work Permit Copy - نسخة إذن العمل', attachment=True)
     attachment_work_permit_copy_name = fields.Char()
+    work_permit_validity = fields.Date(string='Work Permit Expiry - تاريخ انتهاء إذن العمل')
 
     # 3) Issuing Civil ID — 3 uploads
     # ── New field, added specifically to support auto-creating an Employee
@@ -125,21 +132,38 @@ class FieldPassHrVisaRequest(models.Model):
     attachment_moi_migration_name = fields.Char()
     attachment_final_civil_id = fields.Binary(string='Civil ID - البطاقة المدنية', attachment=True)
     attachment_final_civil_id_name = fields.Char()
+    civil_id_validity = fields.Date(string='Civil ID Expiry - تاريخ انتهاء البطاقة المدنية')
 
     state = fields.Selection([
         ('draft', 'Draft - مسودة'),
         ('submitted', 'Submitted - تم التقديم'),
         ('rejected', 'Rejected - مرفوض'),
+        ('rejected_closed', 'Closed (Rejected) - مغلق (مرفوض)'),
         ('under_process', 'Under Process - قيد المعالجة'),
         ('completed', 'Completed - Visa Issued - مكتمل - تم إصدار السمة'),
         ('awaiting_additional_docs', 'Awaiting Additional Documents - بانتظار مستندات إضافية'),
         ('candidate_arrived', 'Candidate Arrived - وصول المرشح'),
         ('issuing_civil_id', 'Issuing Civil ID - إصدار البطاقة المدنية'),
+        ('closure_documents', 'Final Closure Documents - مستندات الإغلاق النهائي'),
+        ('pending_approval', 'Pending Manager Approval - بانتظار موافقة المدير'),
         ('closed', 'Closed - مغلق'),
     ], default='draft', required=True, tracking=True)
 
     history_ids = fields.One2many(
         'field.pass.hr.visa.request.log', 'request_id', string='History - السجل')
+    last_action_by = fields.Many2one(
+        'res.users', string='Last Action By - آخر إجراء بواسطة',
+        compute='_compute_last_action_by',
+        help='Same reasoning as the Residency Transfer request — shows '
+             'whoever did the most recent thing, not who originally '
+             'submitted it.',
+    )
+
+    @api.depends('history_ids.event_date')
+    def _compute_last_action_by(self):
+        for rec in self:
+            latest = rec.history_ids.sorted('event_date', reverse=True)[:1]
+            rec.last_action_by = latest.event_by if latest else rec.create_uid
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -166,13 +190,14 @@ class FieldPassHrVisaRequest(models.Model):
             (self.candidate_name, 'Candidate Name (English)'),
             (self.candidate_name_ar, 'اسم الموظف بالعربي'),
             (self.passport_no, 'Passport No - رقم الجواز'),
-            (self.company_id, 'Company - الشركة'),
+            (self.fp_company_id, 'Company - الشركة'),
             (self.department_id, 'Department - القسم'),
             (self.internal_position_title, 'Position Title - المسمى الوظيفي'),
             (self.suggested_position_title, 'Suggested Work Permit Position Title'),
             (self.salary, 'Salary - الراتب'),
             (self.candidate_contact_no, 'Candidate Contact No - رقم اتصال المرشح'),
             (self.attachment_passport, 'Passport - جواز السفر (upload)'),
+            (self.passport_validity, 'Passport Expiry - تاريخ انتهاء الجواز'),
             (self.attachment_education_degree, 'Education Degree - الشهادة الدراسية (upload)'),
             (self.attachment_job_offer, 'Signed Job Offer - عرض العمل الموقع (upload)'),
             (self.attachment_cv, 'CV - السيرة الذاتية (upload)'),
@@ -202,6 +227,35 @@ class FieldPassHrVisaRequest(models.Model):
         self._log('rejected', notes=reason)
         self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Rejected', reason)
 
+    def action_close(self):
+        """
+        Confirmed design: HR needs a real way to definitively end a
+        rejected request instead of it lingering indefinitely — same
+        principle as the Residency Transfer request's Close button. Uses
+        'rejected_closed' rather than 'closed' specifically because
+        'closed' is already this model's SUCCESS state (MGRO's Finalize,
+        which creates an Employee) — reusing it here would make a
+        rejected-and-closed request indistinguishable from a genuinely
+        completed one in every filter, report, and dashboard count.
+        """
+        self.ensure_one()
+        if self.state != 'rejected':
+            raise UserError('Only a rejected request can be closed.')
+        self.state = 'rejected_closed'
+        self._log('rejected_closed')
+
+    def action_reopen(self):
+        """Confirmed design: matches Residency Transfer's symmetry - HR
+        gets both Reopen and Close as real options on a rejected request,
+        not just Close alone."""
+        self.ensure_one()
+        if self.state != 'rejected':
+            raise UserError('Only a rejected request can be reopened.')
+        old_reason = self.rejection_reason
+        self.write({'rejection_reason': False, 'state': 'submitted'})
+        self._log('reopened', notes=f'Previous rejection reason: {old_reason}')
+        self._notify_other_side('field_pass_tracker.group_fp_viewer', 'Reopened')
+
     def action_mark_under_process(self):
         self.ensure_one()
         if self.state != 'submitted':
@@ -230,7 +284,7 @@ class FieldPassHrVisaRequest(models.Model):
             raise UserError('This request is not awaiting a close/keep-open decision.')
         self.state = 'closed'
         self._log('closed', notes='Closed with issued visa only — no additional documents.')
-        self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Closed (Visa Only)')
+        self._notify_other_side('field_pass_tracker.group_fp_viewer', 'Closed (Visa Only)')
 
     def action_keep_open(self):
         """Confirmed branch: keep going to collect the full document chain
@@ -241,16 +295,18 @@ class FieldPassHrVisaRequest(models.Model):
             raise UserError('This request is not awaiting a close/keep-open decision.')
         self.state = 'awaiting_additional_docs'
         self._log('kept_open')
-        self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Kept Open — Additional Documents Needed')
+        self._notify_other_side('field_pass_tracker.group_fp_viewer', 'Kept Open — Additional Documents Needed')
 
     def action_mark_candidate_arrived(self):
         """
-        Confirmed design update: the 6 documents from the Awaiting
+        Confirmed design update: the 7 documents from the Awaiting
         Additional Documents stage are now required here — previously this
         transition had no requirement at all, but per the general "block
         every stage until its data is complete" rule, this was a real gap.
         Degree Equivalency itself is still process-only (no upload needed
-        for that specific item).
+        for that specific item). Stamped Work Visa added later — the
+        airport arrival stamp, used as proof of entry and later needed for
+        the Work Permit step.
         """
         self.ensure_one()
         if self.state != 'awaiting_additional_docs':
@@ -262,36 +318,71 @@ class FieldPassHrVisaRequest(models.Model):
             (self.attachment_medical_checkup, 'Medical Checkup Certificate - شهادة الفحص الطبي (upload)'),
             (self.attachment_fingerprints, 'Fingerprints - البصمات (upload)'),
             (self.attachment_no_criminal_record, 'No Criminal Record Certificate - شهادة لا حكم عليه (upload)'),
+            (self.attachment_stamped_visa, 'Stamped Work Visa - سمة دخول مختومة (upload)'),
         ])
         self.state = 'candidate_arrived'
         self._log('candidate_arrived')
-        self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Candidate Arrived')
+        self._notify_other_side('field_pass_tracker.group_fp_viewer', 'Candidate Arrived')
 
     def action_issue_work_permit(self):
         """Confirmed hard requirement: cannot proceed without the Work
-        Permit copy uploaded."""
+        Permit copy uploaded, along with its expiry date."""
         self.ensure_one()
         if self.state != 'candidate_arrived':
             raise UserError('This request is not at the Candidate Arrived stage.')
-        if not self.attachment_work_permit_copy:
-            raise ValidationError('Please upload the Work Permit copy before proceeding.')
+        self._require([
+            (self.attachment_work_permit_copy, 'Work Permit Copy - نسخة إذن العمل (upload)'),
+            (self.work_permit_validity, 'Work Permit Expiry - تاريخ انتهاء إذن العمل'),
+        ])
         self.state = 'issuing_civil_id'
         self._log('work_permit_issued')
         self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Work Permit Issued')
 
-    def action_finalize(self):
+    def action_submit_civil_id_docs(self):
+        """
+        Confirmed design: what used to be one combined "Issuing Civil ID"
+        stage is now split into two real steps — this one (GRO submits the
+        Civil ID Number + 3 personal documents) and a separate Final
+        Closure Documents step after it. Splitting these makes sense
+        operationally: Civil ID requirements and final closure paperwork
+        are genuinely different tasks that happen at different times.
+        """
         self.ensure_one()
         if self.state != 'issuing_civil_id':
-            raise UserError('This request is not awaiting final closure.')
+            raise UserError('This request is not at the Issuing Civil ID stage.')
         self._require([
             (self.civil_id_number, 'Civil ID Number - رقم البطاقة المدنية'),
             (self.attachment_blood_type, 'Blood Type - فصيلة الدم (upload)'),
             (self.attachment_personal_picture, 'Personal Picture - صورة شخصية (upload)'),
             (self.attachment_rental_contract, 'Rental Contract - عقد إيجار (upload)'),
+        ])
+        self.state = 'closure_documents'
+        self._log('civil_id_docs_submitted')
+        self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Civil ID Documents Submitted')
+
+    def action_submit_for_approval(self):
+        """Same pattern as the Residency Transfer request — GRO Admin does
+        the document collection, validates everything, then hands off to
+        GRO Manager for the actual approval/employee-creation step."""
+        self.ensure_one()
+        if self.state != 'closure_documents':
+            raise UserError('This request is not awaiting final closure.')
+        self._require([
             (self.attachment_health_insurance, 'Health Insurance - الضمان الصحي (upload)'),
             (self.attachment_moi_migration, 'MOI Migration - الهجرة (upload)'),
             (self.attachment_final_civil_id, 'Civil ID - البطاقة المدنية (upload)'),
+            (self.civil_id_validity, 'Civil ID Expiry - تاريخ انتهاء البطاقة المدنية'),
         ])
+        self.state = 'pending_approval'
+        self._log('pending_approval')
+        self._notify_other_side('field_pass_tracker.group_fp_manager', 'Ready for Manager Approval')
+
+    def action_finalize(self):
+        """Manager's own step — documents were already fully validated at
+        submission, this just confirms and creates the Employee record."""
+        self.ensure_one()
+        if self.state != 'pending_approval':
+            raise UserError('This request is not pending manager approval.')
         self.state = 'closed'
         self._log('closed', notes='Closed with full additional-document chain completed.')
         self._notify_other_side('field_pass_tracker.group_fp_hr_viewer', 'Finalized — Closed')
@@ -321,22 +412,22 @@ class FieldPassHrVisaRequest(models.Model):
         if self.attachment_final_civil_id:
             vals['attachment_civil_id'] = self.attachment_final_civil_id
             vals['attachment_civil_id_name'] = self.attachment_final_civil_id_name
+            vals['civil_id_validity'] = self.civil_id_validity
         if self.attachment_passport:
             vals['attachment_passport'] = self.attachment_passport
             vals['attachment_passport_name'] = self.attachment_passport_name
+            vals['passport_validity'] = self.passport_validity
+        # Confirmed design: Work Permit and Residency are the same
+        # government concept under two different names — Employee's own
+        # field is literally called "Residency", so the Work Permit copy
+        # + its expiry date map there, same as the Residency Transfer
+        # request does.
+        if self.attachment_work_permit_copy:
+            vals['attachment_residency'] = self.attachment_work_permit_copy
+            vals['attachment_residency_name'] = self.attachment_work_permit_copy_name
+            vals['residency_validity'] = self.work_permit_validity
         employee = Employee.create(vals)
         self._log('employee_created', notes=f'Employee record created: {employee.name} (#{employee.id})')
-
-    def action_reopen(self):
-        """Same design as the Residency Transfer request — Rejected is not
-        a permanent dead end."""
-        self.ensure_one()
-        if self.state != 'rejected':
-            raise UserError('Only a rejected request can be reopened.')
-        old_reason = self.rejection_reason
-        self.write({'rejection_reason': False, 'state': 'submitted'})
-        self._log('reopened', notes=f'Previous rejection reason: {old_reason}')
-        self._notify_other_side('field_pass_tracker.group_fp_viewer', 'Reopened')
 
 
 class FieldPassHrVisaRequestLog(models.Model):
@@ -349,12 +440,15 @@ class FieldPassHrVisaRequestLog(models.Model):
     event_type = fields.Selection([
         ('submitted', 'Submitted'),
         ('rejected', 'Rejected'),
+        ('rejected_closed', 'Closed (Rejected)'),
         ('reopened', 'Reopened'),
         ('under_process', 'Under Process'),
         ('completed', 'Completed'),
         ('kept_open', 'Kept Open'),
         ('candidate_arrived', 'Candidate Arrived'),
         ('work_permit_issued', 'Work Permit Issued'),
+        ('civil_id_docs_submitted', 'Civil ID Documents Submitted'),
+        ('pending_approval', 'Pending Manager Approval'),
         ('closed', 'Closed'),
         ('employee_created', 'Employee Record Created'),
     ], required=True)

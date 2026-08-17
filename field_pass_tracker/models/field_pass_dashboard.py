@@ -150,7 +150,7 @@ class FieldPassDashboard(models.Model):
             rec.hr_residency_rejected = Residency.search_count([('state', '=', 'rejected')])
             rec.hr_residency_completed = Residency.search_count([('state', '=', 'completed')])
             residency_active = Residency.search(
-                [('state', 'not in', ('draft', 'completed'))], order='create_date desc')
+                [('state', 'not in', ('draft', 'completed', 'closed'))], order='create_date desc')
             rec.hr_residency_active = len(residency_active)
             rec.hr_residency_alert_ids = [(6, 0, residency_active.ids)]
 
@@ -158,7 +158,7 @@ class FieldPassDashboard(models.Model):
             rec.hr_visa_rejected = Visa.search_count([('state', '=', 'rejected')])
             rec.hr_visa_closed = Visa.search_count([('state', '=', 'closed')])
             visa_active = Visa.search(
-                [('state', 'not in', ('draft', 'closed'))], order='create_date desc')
+                [('state', 'not in', ('draft', 'closed', 'rejected_closed'))], order='create_date desc')
             rec.hr_visa_active = len(visa_active)
             rec.hr_visa_alert_ids = [(6, 0, visa_active.ids)]
 
@@ -339,9 +339,9 @@ class FieldPassDashboard(models.Model):
             # Documents currently needing attention (warning/expired) on top
             # of the existing submitted-but-not-issued documents/passes.
             hr_residency_inflight = self.env['field.pass.hr.residency.request'].sudo().search_count(
-                [('state', 'not in', ('draft', 'completed'))])
+                [('state', 'not in', ('draft', 'completed', 'closed'))])
             hr_visa_inflight = self.env['field.pass.hr.visa.request'].sudo().search_count(
-                [('state', 'not in', ('draft', 'closed'))])
+                [('state', 'not in', ('draft', 'closed', 'rejected_closed'))])
             company_doc_issues = self.env['field.pass.company.document'].sudo().search_count(
                 [('status', 'in', ('warning', 'expired')), ('active', '=', True)])
             rec.stat_processing = (len(submitted_r) + len(submitted_a)
